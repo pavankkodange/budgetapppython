@@ -3,10 +3,5 @@
     "app/main.py": {
       "runtime": "python3.9"
     }
-  },
-  "env": {
-    "SECRET_KEY": "@secret_key",
-    "DATABASE_URL": "@database_url",
-    "ALLOWED_ORIGINS": "@allowed_origins"
   }
-}
+  }
