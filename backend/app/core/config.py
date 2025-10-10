@@ -35,4 +35,4 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings()
+settings = Settings()  # Deployment fix: using hardcoded SECRET_KEY
