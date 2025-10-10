@@ -1,7 +1,7 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings  # pyright: ignore[reportMissingImports]
 from typing import List
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 
 load_dotenv()
 
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/budgetapp")
     
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "R6Ld1KWM4Rui-rZFNF7wKVxkmbTesjqGd47ZopGSYgY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
         "http://localhost:5173",  # Vite dev server
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
+        "https://*.vercel.app",  # Allow all Vercel deployments
     ]
     
     # File upload
