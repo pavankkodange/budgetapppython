@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, DateTime, Boolean, Text
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import relationship  # pyright: ignore[reportMissingImports]
+from sqlalchemy.sql import func  # pyright: ignore[reportMissingImports]
 from app.database import Base
 
 class User(Base):
