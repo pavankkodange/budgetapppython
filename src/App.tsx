@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProfileProvider } from "./context/ProfileContext";
 import { AuthForm } from "./components/AuthForm";
+import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
@@ -67,21 +68,23 @@ const AppContent = () => {
                         <InsuranceProvider>
                           <AssetProvider>
                             <TaxDeductionProvider>
-                              <Routes>
-                                {/* Default route redirects to dashboard */}
-                                <Route path="/" element={<Index />} />
-                                <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                                <Route path="/income" element={<IncomePage />} />
-                                <Route path="/expenses" element={<Expenses />} />
-                                <Route path="/investments" element={<Investments />} />
-                                <Route path="/insurance" element={<Insurance />} />
-                                <Route path="/assets" element={<Assets />} />
-                                <Route path="/tax-deductions" element={<TaxDeductions />} />
-                                <Route path="/calculators" element={<Calculators />} />
-                                <Route path="/reports" element={<Reports />} />
-                                <Route path="/admin" element={<Admin />} />
-                                <Route path="*" element={<NotFound />} />
-                              </Routes>
+                              <Layout>
+                                <Routes>
+                                  {/* Default route redirects to dashboard */}
+                                  <Route path="/" element={<Index />} />
+                                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                                  <Route path="/income" element={<IncomePage />} />
+                                  <Route path="/expenses" element={<Expenses />} />
+                                  <Route path="/investments" element={<Investments />} />
+                                  <Route path="/insurance" element={<Insurance />} />
+                                  <Route path="/assets" element={<Assets />} />
+                                  <Route path="/tax-deductions" element={<TaxDeductions />} />
+                                  <Route path="/calculators" element={<Calculators />} />
+                                  <Route path="/reports" element={<Reports />} />
+                                  <Route path="/admin" element={<Admin />} />
+                                  <Route path="*" element={<NotFound />} />
+                                </Routes>
+                              </Layout>
                             </TaxDeductionProvider>
                           </AssetProvider>
                         </InsuranceProvider>

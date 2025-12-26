@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, PieChart, LineChart, Sparkles, TrendingUp, DollarSign, Calendar, Download, Printer, FileText, Filter } from "lucide-react";
@@ -31,7 +29,6 @@ import {
 import { showSuccess } from "@/utils/toast";
 
 const Reports = () => {
-  const isMobile = useIsMobile();
   const { selectedCurrency } = useCurrency();
   const { expenses } = useExpenses();
   const { monthlyIncomeSummaries } = useIncomeSummaries();
@@ -64,7 +61,7 @@ const Reports = () => {
       // Calculate net income for each month
       let monthlyGrossIncome = 0;
       let monthlyDeductions = 0;
-      
+
       for (const [source, amount] of Object.entries(summary.lineItems)) {
         // Determine if this is income or deduction based on positive/negative value
         if (amount > 0) {
@@ -73,7 +70,7 @@ const Reports = () => {
           monthlyDeductions += Math.abs(amount);
         }
       }
-      
+
       yearlyIncome += (monthlyGrossIncome - monthlyDeductions);
     });
 
@@ -81,10 +78,10 @@ const Reports = () => {
   const generateMonthlyExpenseData = () => {
     const startDate = startOfYear(new Date());
     const endDate = endOfYear(new Date());
-    
+
     // Generate all months in the year
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    
+
     // Initialize data with all months
     const data = months.map(month => ({
       name: format(month, 'MMM'),
@@ -97,11 +94,11 @@ const Reports = () => {
     expenses.forEach(expense => {
       if (getYear(expense.date) === currentYear) {
         const expenseMonth = getMonth(expense.date);
-        
+
         const monthIndex = data.findIndex(
           item => item.month === expenseMonth
         );
-        
+
         if (monthIndex !== -1) {
           data[monthIndex].value += expense.amount;
         }
@@ -115,7 +112,7 @@ const Reports = () => {
   const generateExpenseByCategoryData = () => {
     // Filter expenses for current year
     const yearExpenses = expenses.filter(expense => getYear(expense.date) === currentYear);
-    
+
     // Group by category
     const categoryMap: Record<string, number> = {};
     yearExpenses.forEach(expense => {
@@ -136,15 +133,15 @@ const Reports = () => {
   const generateIncomeVsExpensesData = () => {
     const startDate = startOfYear(new Date(parseInt(selectedYear)));
     const endDate = endOfYear(new Date(parseInt(selectedYear)));
-    
+
     // Generate all months in the year
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-    
+
     // Initialize data with all months
     const data = months.map(month => {
       const monthIndex = getMonth(month);
       const year = getYear(month);
-      
+
       return {
         name: format(month, 'MMM'),
         month: monthIndex,
@@ -160,12 +157,12 @@ const Reports = () => {
         const monthIndex = data.findIndex(
           item => item.month === summary.month
         );
-        
+
         if (monthIndex !== -1) {
           // Calculate total income (sum of all income line items)
           let totalIncome = 0;
           let totalDeductions = 0;
-          
+
           for (const [source, amount] of Object.entries(summary.lineItems)) {
             // Determine if this is income or deduction based on positive/negative value
             if (amount > 0) {
@@ -174,7 +171,7 @@ const Reports = () => {
               totalDeductions += Math.abs(amount);
             }
           }
-          
+
           data[monthIndex].income = totalIncome - totalDeductions;
         }
       }
@@ -184,11 +181,11 @@ const Reports = () => {
     expenses.forEach(expense => {
       if (getYear(expense.date) === parseInt(selectedYear)) {
         const expenseMonth = getMonth(expense.date);
-        
+
         const monthIndex = data.findIndex(
           item => item.month === expenseMonth
         );
-        
+
         if (monthIndex !== -1) {
           data[monthIndex].expenses += expense.amount;
         }
@@ -202,13 +199,13 @@ const Reports = () => {
   const generateMonthlyBudgetData = () => {
     // For a real app, this would compare against budget categories
     // For now, we'll just show expenses by category for the selected month
-    
+
     // Filter expenses for selected month and year
-    const monthExpenses = expenses.filter(expense => 
-      getYear(expense.date) === parseInt(selectedYear) && 
+    const monthExpenses = expenses.filter(expense =>
+      getYear(expense.date) === parseInt(selectedYear) &&
       getMonth(expense.date) === parseInt(selectedMonth)
     );
-    
+
     // Group by category
     const categoryMap: Record<string, number> = {};
     monthExpenses.forEach(expense => {
@@ -229,14 +226,14 @@ const Reports = () => {
   // Generate tax summary data
   const generateTaxSummaryData = () => {
     const year = parseInt(selectedYear);
-    
+
     // Get actual tax deductions from the tax deductions context
     const totalDeductions = getTotalDeductionsForYear(year);
-    
+
     // Get income data for the selected year
     let totalIncome = 0;
     let totalTaxes = 0;
-    
+
     // Calculate total income and taxes paid from monthly summaries
     monthlyIncomeSummaries
       .filter(summary => summary.year === year)
@@ -246,28 +243,28 @@ const Reports = () => {
           if (amount > 0) {
             totalIncome += amount;
           }
-          
+
           // Look for tax-related deductions
           const sourceLower = source.toLowerCase();
           if (amount < 0 && (
-            sourceLower.includes('tax') || 
-            sourceLower.includes('tds') || 
+            sourceLower.includes('tax') ||
+            sourceLower.includes('tds') ||
             sourceLower.includes('income tax')
           )) {
             totalTaxes += Math.abs(amount);
           }
         }
       });
-    
+
     // Calculate investment income (simplified)
     const investmentIncome = totalIncome * 0.05; // Assume 5% of total income is from investments
-    
+
     // Calculate tax credits (simplified)
     const taxCredits = totalDeductions * 0.2; // Assume 20% of deductions translate to credits
-    
+
     // Calculate estimated tax (simplified)
     const estimatedTax = Math.max(0, totalTaxes - taxCredits);
-    
+
     return [
       { name: 'Salary Income', value: totalIncome - investmentIncome },
       { name: 'Investment Income', value: investmentIncome },
@@ -305,7 +302,7 @@ const Reports = () => {
 
   // Colors for charts
   const COLORS = [
-    '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', 
+    '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8',
     '#82CA9D', '#8DD1E1', '#A4DE6C', '#D0ED57', '#FAAAA3'
   ];
 
@@ -412,7 +409,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         );
-      
+
       case 'income-trend':
         return (
           <Card>
@@ -487,7 +484,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         );
-      
+
       case 'expense-breakdown':
         return (
           <Card>
@@ -547,14 +544,14 @@ const Reports = () => {
                   {expenseByCategoryData.slice(0, 5).map((category, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-sm mr-2" 
+                        <div
+                          className="w-3 h-3 rounded-sm mr-2"
                           style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         ></div>
                         <span className="text-sm">{category.name}</span>
                       </div>
                       <div className="text-sm font-medium">
-                        {selectedCurrency.symbol}{category.value.toLocaleString()} 
+                        {selectedCurrency.symbol}{category.value.toLocaleString()}
                         <span className="text-xs text-muted-foreground ml-2">
                           ({((category.value / expenseByCategoryData.reduce((sum, item) => sum + item.value, 0)) * 100).toFixed(1)}%)
                         </span>
@@ -576,7 +573,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         );
-      
+
       case 'tax-summary':
         return (
           <Card>
@@ -647,7 +644,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         );
-      
+
       case 'custom-report':
         return (
           <Card>
@@ -671,7 +668,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         );
-      
+
       default:
         return (
           <div className="flex items-center justify-center h-64 bg-muted/30 rounded-lg">
@@ -682,237 +679,234 @@ const Reports = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col ${isMobile ? "pt-16" : "ml-64"}`}>
-        <header className="p-4 border-b border-border flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <BackButton />
-            <div>
-              <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-              <p className="text-sm text-muted-foreground">Visualize your financial data with AI-powered insights</p>
-            </div>
+    <>
+      <header className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold">Reports & Analytics</h1>
+            <p className="text-sm text-muted-foreground">Visualize your financial data with AI-powered insights</p>
           </div>
-        </header>
-        <main className="flex-1 p-6 overflow-auto">
-          <Tabs defaultValue="dashboard" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="standard-reports">Standard Reports</TabsTrigger>
-              <TabsTrigger value="ai-charts">AI Chart Generator</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="dashboard" className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Yearly Expenses</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {selectedCurrency.symbol}{yearlyExpenses.toLocaleString()}
+        </div>
+      </header>
+      <main className="flex-1 p-6 overflow-auto">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="standard-reports">Standard Reports</TabsTrigger>
+            <TabsTrigger value="ai-charts">AI Chart Generator</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Yearly Expenses</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {selectedCurrency.symbol}{yearlyExpenses.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Total expenses for {currentYear}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {selectedCurrency.symbol}{monthlyExpenses.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Expenses for {format(new Date(currentYear, currentMonth), 'MMMM yyyy')}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Yearly Income</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {selectedCurrency.symbol}{yearlyIncome.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Total income for {currentYear}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BarChart className="h-5 w-5 mr-2" />
+                    Monthly Expenses ({currentYear})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {monthlyExpenseData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsBarChart data={monthlyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => `${selectedCurrency.symbol}${value.toLocaleString()}`} />
+                        <Legend />
+                        <Bar dataKey="value" fill="#3b82f6" name="Expenses" />
+                      </RechartsBarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground">No expense data available for {currentYear}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Total expenses for {currentYear}
-                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <PieChart className="h-5 w-5 mr-2" />
+                    Expenses by Category ({currentYear})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {expenseByCategoryData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={expenseByCategoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={120}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {expenseByCategoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `${selectedCurrency.symbol}${value.toLocaleString()}`} />
+                        <Legend />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground">No category data available for {currentYear}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="standard-reports" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+              {/* Report Selection Sidebar */}
+              <div className="md:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Standard Reports</CardTitle>
+                    <CardDescription>
+                      Select a report to view
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-1 p-2">
+                      <Button
+                        variant={selectedReport === 'monthly-budget' ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedReport('monthly-budget')}
+                      >
+                        <BarChart className="h-4 w-4 mr-2" />
+                        Monthly Budget Report
+                      </Button>
+                      <Button
+                        variant={selectedReport === 'income-trend' ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedReport('income-trend')}
+                      >
+                        <LineChart className="h-4 w-4 mr-2" />
+                        Income Trend Analysis
+                      </Button>
+                      <Button
+                        variant={selectedReport === 'expense-breakdown' ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedReport('expense-breakdown')}
+                      >
+                        <PieChart className="h-4 w-4 mr-2" />
+                        Expense Breakdown
+                      </Button>
+                      <Button
+                        variant={selectedReport === 'tax-summary' ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedReport('tax-summary')}
+                      >
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Tax Summary
+                      </Button>
+                      <Button
+                        variant={selectedReport === 'custom-report' ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedReport('custom-report')}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Custom Report Builder
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle>Report Actions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {selectedCurrency.symbol}{monthlyExpenses.toLocaleString()}
+                    <div className="space-y-2">
+                      <Button variant="outline" className="w-full justify-start" onClick={handleDownloadReport}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Report
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start" onClick={handlePrintReport}>
+                        <Printer className="h-4 w-4 mr-2" />
+                        Print Report
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start" onClick={() => handleExportReport('PDF')}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export as PDF
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Expenses for {format(new Date(currentYear, currentMonth), 'MMMM yyyy')}
-                    </p>
                   </CardContent>
                 </Card>
+              </div>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Yearly Income</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {selectedCurrency.symbol}{yearlyIncome.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Total income for {currentYear}
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Report Display Area */}
+              <div className="md:col-span-4">
+                {renderReport()}
               </div>
-              
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <BarChart className="h-5 w-5 mr-2" />
-                      Monthly Expenses ({currentYear})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-80">
-                    {monthlyExpenseData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={monthlyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => `${selectedCurrency.symbol}${value.toLocaleString()}`} />
-                          <Legend />
-                          <Bar dataKey="value" fill="#3b82f6" name="Expenses" />
-                        </RechartsBarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-muted-foreground">No expense data available for {currentYear}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <PieChart className="h-5 w-5 mr-2" />
-                      Expenses by Category ({currentYear})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-80">
-                    {expenseByCategoryData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
-                          <Pie
-                            data={expenseByCategoryData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={true}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={120}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {expenseByCategoryData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => `${selectedCurrency.symbol}${value.toLocaleString()}`} />
-                          <Legend />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-muted-foreground">No category data available for {currentYear}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="standard-reports" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                {/* Report Selection Sidebar */}
-                <div className="md:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Standard Reports</CardTitle>
-                      <CardDescription>
-                        Select a report to view
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="space-y-1 p-2">
-                        <Button 
-                          variant={selectedReport === 'monthly-budget' ? 'default' : 'ghost'} 
-                          className="w-full justify-start"
-                          onClick={() => setSelectedReport('monthly-budget')}
-                        >
-                          <BarChart className="h-4 w-4 mr-2" />
-                          Monthly Budget Report
-                        </Button>
-                        <Button 
-                          variant={selectedReport === 'income-trend' ? 'default' : 'ghost'} 
-                          className="w-full justify-start"
-                          onClick={() => setSelectedReport('income-trend')}
-                        >
-                          <LineChart className="h-4 w-4 mr-2" />
-                          Income Trend Analysis
-                        </Button>
-                        <Button 
-                          variant={selectedReport === 'expense-breakdown' ? 'default' : 'ghost'} 
-                          className="w-full justify-start"
-                          onClick={() => setSelectedReport('expense-breakdown')}
-                        >
-                          <PieChart className="h-4 w-4 mr-2" />
-                          Expense Breakdown
-                        </Button>
-                        <Button 
-                          variant={selectedReport === 'tax-summary' ? 'default' : 'ghost'} 
-                          className="w-full justify-start"
-                          onClick={() => setSelectedReport('tax-summary')}
-                        >
-                          <DollarSign className="h-4 w-4 mr-2" />
-                          Tax Summary
-                        </Button>
-                        <Button 
-                          variant={selectedReport === 'custom-report' ? 'default' : 'ghost'} 
-                          className="w-full justify-start"
-                          onClick={() => setSelectedReport('custom-report')}
-                        >
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Custom Report Builder
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="mt-4">
-                    <CardHeader>
-                      <CardTitle>Report Actions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start" onClick={handleDownloadReport}>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Report
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start" onClick={handlePrintReport}>
-                          <Printer className="h-4 w-4 mr-2" />
-                          Print Report
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start" onClick={() => handleExportReport('PDF')}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Export as PDF
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Report Display Area */}
-                <div className="md:col-span-4">
-                  {renderReport()}
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="ai-charts">
-              <AIChartGenerator />
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
-    </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai-charts">
+            <AIChartGenerator />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </>
   );
 };
 

@@ -29,7 +29,6 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = React.useState(false);
-  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     try {
@@ -59,7 +58,7 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
           </div>
         </div>
       </div>
-      
+
       {/* User Profile Section */}
       <div className="p-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
         <div className="flex items-center space-x-2">
@@ -173,7 +172,7 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
           />
         </nav>
       </div>
-      
+
       {/* Sign Out Section */}
       <div className="p-3 mt-auto border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
         <Button
@@ -201,17 +200,17 @@ export const Sidebar: React.FC = () => {
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={setIsOpen} className="z-50">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
-            variant="ghost" 
-            size="icon" 
-            className="fixed top-2 left-2 z-50 h-10 w-10 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-foreground shadow-sm rounded-lg"
+            variant="ghost"
+            size="icon"
+            className="fixed top-3 left-3 z-[60] h-10 w-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md hover:bg-white/60 dark:hover:bg-slate-900/60 shadow-lg border border-white/20 dark:border-white/10 rounded-xl transition-all"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-[85vw] max-w-[300px] border-0 overflow-hidden mobile-sidebar">
+        <SheetContent side="left" className="p-0 w-[85vw] max-w-[300px] border-0 overflow-hidden mobile-sidebar z-[100]">
           <SidebarContent onLinkClick={handleLinkClick} />
         </SheetContent>
       </Sheet>
@@ -222,5 +221,5 @@ export const Sidebar: React.FC = () => {
     <div className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 z-40 shadow-2xl">
       <SidebarContent />
     </div>
-  ); 
+  );
 };

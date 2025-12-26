@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { showSuccess, showError } from '@/utils/toast';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react';
 
 export const AuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -113,11 +113,11 @@ export const AuthForm: React.FC = () => {
         <div className="text-center space-y-6">
           <div className="flex justify-center">
             <div className="relative">
-              <div className="h-24 w-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl float">
-                <img src="/logo.svg" alt="TrackMyFunds" className="h-12 w-12" />
+              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl float">
+                <img src="/logo.svg" alt="TrackMyFunds" className="h-8 w-8" />
               </div>
-              <div className="absolute -top-2 -right-2 h-6 w-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Sparkles className="h-3 w-3 text-white" />
+              <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Sparkles className="h-2.5 w-2.5 text-white" />
               </div>
             </div>
           </div>
@@ -145,7 +145,7 @@ export const AuthForm: React.FC = () => {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-muted/50">
                 <TabsTrigger value="signin" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800">
@@ -155,7 +155,7 @@ export const AuthForm: React.FC = () => {
                   Sign Up
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="signin" className="mt-6">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
@@ -195,9 +195,9 @@ export const AuthForm: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     disabled={loading}
                   >
                     {loading ? (
@@ -222,7 +222,7 @@ export const AuthForm: React.FC = () => {
                   </div>
                 </form>
               </TabsContent>
-              
+
               <TabsContent value="signup" className="mt-6">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
@@ -263,9 +263,9 @@ export const AuthForm: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     disabled={loading}
                   >
                     {loading ? (
