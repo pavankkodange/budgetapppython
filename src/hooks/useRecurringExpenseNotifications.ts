@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { addMonths, isBefore, isWithinInterval, startOfDay, format } from "date-fns";
+import { addMonths, isWithinInterval, startOfDay, format } from "date-fns";
 import { Expense } from "@/types";
 
-const NOTIFICATION_WINDOW_DAYS = 7; // Notify one week before
 const NOTIFICATION_COOLDOWN_MS = 24 * 60 * 60 * 1000; // Don't show same notification more than once per day
 
 interface NotificationState {
@@ -18,7 +17,6 @@ export const useRecurringExpenseNotifications = (expenses: Expense[]) => {
     expenses.forEach((expense) => {
       if (expense.isRecurring && expense.nextDueDate) {
         const nextDueDate = startOfDay(expense.nextDueDate);
-        const notificationThreshold = startOfDay(addMonths(nextDueDate, -1)); // Check from one month before
 
         // Check if the expense is due within the notification window
         const isDueSoon = isWithinInterval(nextDueDate, {

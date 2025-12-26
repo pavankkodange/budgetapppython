@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useInvestments } from "@/context/InvestmentContext";
+import { InvestmentAsset } from "@/types";
 
 const mutualFundFormSchema = z.object({
   name: z.string().min(1, { message: "Fund name is required." }),
@@ -38,15 +38,16 @@ const mutualFundFormSchema = z.object({
 
 type MutualFundFormValues = z.infer<typeof mutualFundFormSchema>;
 
+
 interface MutualFundFormProps {
   onSuccess?: () => void;
-  initialData?: any;
+  initialData?: InvestmentAsset;
   isEditing?: boolean;
 }
 
 const fundCategories = [
   "Large Cap",
-  "Mid Cap", 
+  "Mid Cap",
   "Small Cap",
   "Multi Cap",
   "Flexi Cap",
@@ -86,7 +87,7 @@ const fundCategories = [
 
 const fundHouses = [
   "SBI Mutual Fund",
-  "HDFC Mutual Fund", 
+  "HDFC Mutual Fund",
   "ICICI Prudential Mutual Fund",
   "Axis Mutual Fund",
   "Kotak Mahindra Mutual Fund",
@@ -120,11 +121,14 @@ const fundHouses = [
 ];
 
 export const MutualFundForm: React.FC<MutualFundFormProps> = ({ onSuccess, initialData, isEditing = false }) => {
-  const { addMutualFund, updateMutualFund } = useInvestments();
+  const { addInvestmentAsset, updateInvestmentAsset } = useInvestments();
 
   const form = useForm<MutualFundFormValues>({
     resolver: zodResolver(mutualFundFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      nav: (initialData as any).nav || (initialData as any).currentPrice || 0,
+    } as any : {
       name: "",
       schemeCode: "",
       fundHouse: "",
@@ -138,9 +142,9 @@ export const MutualFundForm: React.FC<MutualFundFormProps> = ({ onSuccess, initi
 
   const handleSubmit = (values: MutualFundFormValues) => {
     if (isEditing && initialData) {
-      updateMutualFund(initialData.id, values);
+      updateInvestmentAsset(initialData.id, values as any);
     } else {
-      addMutualFund(values);
+      addInvestmentAsset(values as any);
     }
     form.reset();
     if (onSuccess) {

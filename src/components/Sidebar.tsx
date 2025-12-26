@@ -210,7 +210,7 @@ export const Sidebar: React.FC = () => {
             <Menu className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-[85vw] max-w-[300px] border-0 overflow-hidden mobile-sidebar z-[100]">
+        <SheetContent side="left" className="p-0 w-[85vw] max-w-[300px] border-0 overflow-hidden mobile-sidebar">
           <SidebarContent onLinkClick={handleLinkClick} />
         </SheetContent>
       </Sheet>

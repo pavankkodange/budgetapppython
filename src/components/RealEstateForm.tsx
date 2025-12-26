@@ -2,10 +2,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Home } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,11 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { useInvestments } from "@/context/InvestmentContext";
+import { InvestmentAsset } from "@/types";
 
 const realEstateFormSchema = z.object({
   name: z.string().min(1, { message: "Property name is required." }),
@@ -50,20 +45,23 @@ type RealEstateFormValues = z.infer<typeof realEstateFormSchema>;
 
 interface RealEstateFormProps {
   onSuccess?: () => void;
-  initialData?: any;
+  initialData?: InvestmentAsset;
   isEditing?: boolean;
 }
 
-export const RealEstateForm: React.FC<RealEstateFormProps> = ({ 
-  onSuccess, 
-  initialData, 
-  isEditing = false 
+export const RealEstateForm: React.FC<RealEstateFormProps> = ({
+  onSuccess,
+  initialData,
+  isEditing = false
 }) => {
   const { addInvestmentAsset, updateInvestmentAsset } = useInvestments();
 
   const form = useForm<RealEstateFormValues>({
     resolver: zodResolver(realEstateFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      area: (initialData as any).area || 0,
+    } as any : {
       name: "",
       propertyType: "Residential",
       location: "",
@@ -101,11 +99,11 @@ export const RealEstateForm: React.FC<RealEstateFormProps> = ({
     };
 
     if (isEditing && initialData) {
-      updateInvestmentAsset(initialData.id, assetData);
+      updateInvestmentAsset(initialData.id, assetData as any);
     } else {
-      addInvestmentAsset(assetData);
+      addInvestmentAsset(assetData as any);
     }
-    
+
     form.reset();
     if (onSuccess) {
       onSuccess();
@@ -282,7 +280,7 @@ export const RealEstateForm: React.FC<RealEstateFormProps> = ({
 
         <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
           <h3 className="text-lg font-semibold">Financial Details (Optional)</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}

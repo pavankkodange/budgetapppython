@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { Expense } from "@/types";
 import { format, getMonth, getYear } from "date-fns";
 import { useCurrency } from "@/context/CurrencyContext";
-import { Repeat, Trash2, Calendar, Clock, Filter, Edit } from "lucide-react";
+import { Repeat, Trash2, Calendar, Filter, Edit, Plus, DollarSign, Receipt } from "lucide-react";
 import { useRecurringExpenseNotifications } from "@/hooks/useRecurringExpenseNotifications";
 import { useExpenses } from "@/context/ExpenseContext";
 import { BackButton } from "@/components/ui/back-button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,12 +89,12 @@ const Expenses = () => {
   }, {} as Record<string, Expense[]>);
 
   // Convert grouped expenses back to a flat array for display, showing series info
-  const displayExpenses = Object.values(groupedExpenses).map(group => {
+  const displayExpenses = (Object.values(groupedExpenses) as Expense[][]).map(group => {
     if (group.length === 1) {
       return group[0];
     } else {
       // For recurring series, show the first expense with series info
-      const sortedGroup = group.sort((a, b) => a.date.getTime() - b.date.getTime());
+      const sortedGroup = [...group].sort((a, b) => a.date.getTime() - b.date.getTime());
       const firstExpense = sortedGroup[0];
       const lastExpense = sortedGroup[sortedGroup.length - 1];
 
@@ -132,17 +133,17 @@ const Expenses = () => {
 
   return (
     <>
-      <header className="p-3 sm:p-4 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-1 sm:gap-2">
-          <BackButton className="h-8 w-8" />
+      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <BackButton />
           <h1 className="text-xl sm:text-2xl font-bold">Expenses</h1>
         </div>
-        <div className="flex items-center space-x-1 sm:space-x-2">
-          <div className="flex items-center space-x-1 sm:space-x-2 bg-muted/50 p-1 rounded-md">
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <div className="flex items-center flex-1 sm:flex-initial bg-muted/50 p-1 rounded-md">
             <Filter className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground ml-1 sm:ml-2" />
             <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth} >
-              <SelectTrigger className="w-[90px] sm:w-[140px] border-0 bg-transparent text-xs sm:text-sm h-7 sm:h-9">
-                <SelectValue placeholder="Select Month" />
+              <SelectTrigger className="flex-1 sm:w-[130px] border-0 bg-transparent text-xs sm:text-sm h-8 sm:h-9">
+                <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
                 {months.map(month => (
@@ -151,8 +152,8 @@ const Expenses = () => {
               </SelectContent>
             </Select>
             <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
-              <SelectTrigger className="w-[70px] sm:w-[100px] border-0 bg-transparent text-xs sm:text-sm h-7 sm:h-9">
-                <SelectValue placeholder="Select Year" />
+              <SelectTrigger className="w-[70px] sm:w-[90px] border-0 bg-transparent text-xs sm:text-sm h-8 sm:h-9">
+                <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent className="max-h-[200px]">
                 {years.map(year => (
@@ -163,8 +164,8 @@ const Expenses = () => {
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild >
-              <Button size={isMobile ? "sm" : "default"}>
-                {isMobile ? "Add" : "Add New Expense"}
+              <Button size="sm" className="h-10 sm:h-10 px-3 sm:px-4">
+                <Plus className="h-4 w-4 mr-1" /> Add
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -177,108 +178,101 @@ const Expenses = () => {
         </div>
       </header>
       <main className="flex-1 p-3 sm:p-6 overflow-auto">
-        <div className="bg-card p-3 sm:p-6 rounded-lg shadow-sm border border-border mb-4 sm:mb-6">
-          <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold">
-              {selectedMonth === "all"
-                ? `Expenses for ${selectedYear}`
-                : `Expenses for ${months.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
-            </h2>
-            <div className="text-lg sm:text-xl font-bold text-destructive">
-              {selectedCurrency.symbol}{totalExpenses.toFixed(2)}
+        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border mb-4 sm:mb-6">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <div>
+              <h2 className="text-sm sm:text-base font-medium text-muted-foreground uppercase tracking-wider">
+                {selectedMonth === "all"
+                  ? `Expenses for ${selectedYear}`
+                  : `${months.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
+              </h2>
+              <div className="text-2xl sm:text-3xl font-bold text-destructive mt-1">
+                {selectedCurrency.symbol}{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </div>
+            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-destructive" />
             </div>
           </div>
+
           {displayExpenses.length === 0 ? (
-            <p className="text-muted-foreground text-center py-6 sm:py-8 text-sm sm:text-base">
-              No expenses recorded for this period. Click "Add New Expense" to get started!
-            </p>
+            <div className="text-center py-12 bg-muted/20 rounded-lg border-2 border-dashed border-muted">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium">No expenses for this period</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 mb-6">
+                Click the "Add" button to track your first expense.
+              </p>
+              <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" /> Add Expense
+              </Button>
+            </div>
           ) : (
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               {displayExpenses
                 .sort((a, b) => b.date.getTime() - a.date.getTime())
                 .map((expense) => (
-                  <div key={expense.id} className="flex justify-between items-center py-2 sm:py-3 border-b border-border last:border-b-0">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-1 sm:space-x-2 mb-0.5 sm:mb-1">
-                        <p className="font-medium text-sm sm:text-base">
+                  <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-sm sm:text-base truncate">
                           {expense.description || expense.category}
-                        </p>
+                        </h4>
                         {expense.isRecurring && (
-                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            <Repeat className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                            Recurring
-                          </span>
-                        )}
-                        {(expense as any).isRecurringSeries && (
-                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                            <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                            {(expense as any).seriesCount} instances
-                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
+                            <Repeat className="h-2.5 w-2.5 mr-1" /> Recurring
+                          </Badge>
                         )}
                       </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5 sm:space-y-1">
-                        <p className="flex items-center flex-wrap">
-                          <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
-                          {(expense as any).isRecurringSeries
-                            ? `${format(expense.date, "PPP")} - ${format((expense as any).seriesEndDate, "PPP")}`
-                            : format(expense.date, "PPP")
-                          } - {expense.category}
-                        </p>
-                        {expense.isRecurring && expense.nextDueDate && (
-                          <p className="flex items-center flex-wrap">
-                            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
-                            Next due: {format(expense.nextDueDate, "PPP")}
-                          </p>
-                        )}
-                        {expense.endDate && (
-                          <p className="flex items-center flex-wrap">
-                            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
-                            Ends: {format(expense.endDate, "PPP")}
-                          </p>
-                        )}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-muted-foreground">
+                        <span className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {format(expense.date, "dd MMM yyyy")}
+                        </span>
+                        <span className="flex items-center">
+                          <Receipt className="h-3 w-3 mr-1" />
+                          {expense.category}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 sm:space-x-3 ml-2">
+
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0">
                       <div className="text-right">
-                        <span className="font-bold text-destructive text-sm sm:text-base">
+                        <div className="text-base sm:text-lg font-bold text-destructive">
                           {selectedCurrency.symbol}{expense.amount.toFixed(2)}
-                        </span>
-                        {(expense as any).isRecurringSeries && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            Total: {selectedCurrency.symbol}{(expense.amount * (expense as any).seriesCount).toFixed(2)}
-                          </p>
-                        )}
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 sm:h-7 sm:w-7"
-                        onClick={() => openEditDialog(expense)}
-                      >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon" className="h-6 w-6 sm:h-7 sm:w-7">
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently remove this expense
-                              {(expense as any).isRecurringSeries && ` series (${(expense as any).seriesCount} instances)`}.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => removeExpense(expense.id)}>
-                              Continue
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(expense)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this expense? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => removeExpense(expense.id)}>
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 ))}

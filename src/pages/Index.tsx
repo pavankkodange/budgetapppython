@@ -1,12 +1,12 @@
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRecurringExpenseNotifications } from "@/hooks/useRecurringExpenseNotifications";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useExpenses } from "@/context/ExpenseContext";
 import { useIncomeSummaries } from "@/context/IncomeSummaryContext";
 import { useIncomeSources } from "@/context/IncomeSourceContext";
 import { useSavingsEntries } from "@/context/SavingsEntryContext";
 import { useSavingsInstruments } from "@/context/SavingsInstrumentContext";
-import { getMonth, getYear, isSameMonth, isSameYear, format } from "date-fns";
+import { getMonth, getYear, format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Receipt, Target, Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const { selectedCurrency } = useCurrency();
@@ -154,7 +155,7 @@ const Index = () => {
     .slice(0, 3);
 
   const currentFullYear = new Date().getFullYear();
-  const years = Array.from({ length: 101 }, (_, i) => (currentFullYear - 50 + i).toString());
+  const years = Array.from({ length: 11 }, (_, i) => (currentFullYear - 5 + i).toString());
 
   const months = [
     { value: "all", label: "All Months" },
@@ -174,196 +175,194 @@ const Index = () => {
 
   return (
     <>
-      <header className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1">Welcome back! Here's your financial overview.</p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
-              <SelectTrigger className="w-[140px] bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-border/50">
-                <SelectValue placeholder="Select Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map(month => (
-                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
-              <SelectTrigger className="w-[100px] bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-border/50">
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+            Overview of your financial performance
+          </p>
+        </div>
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
+            <SelectTrigger className="flex-1 sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map(month => (
+                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
+            <SelectTrigger className="w-[80px] sm:w-[100px] h-9 sm:h-10 text-xs sm:text-sm">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map(year => (
+                <SelectItem key={year} value={year}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <main className="flex-1 p-3 sm:p-6 overflow-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {/* Net Income Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Net Income for {displayPeriod}</CardTitle>
-              <div className="h-8 w-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <DollarSign className="h-4 w-4 text-white" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Net Income</CardTitle>
+              <div className="h-8 w-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-green-600" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <CardContent className="p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {selectedCurrency.symbol}{netIncomeForSelectedPeriod.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                Take-home pay for the selected period
+                Take-home for {displayPeriod}
               </p>
             </CardContent>
           </Card>
 
           {/* Expenses Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Expenses for {displayPeriod}</CardTitle>
-              <div className="h-8 w-8 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Receipt className="h-4 w-4 text-white" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Expenses</CardTitle>
+              <div className="h-8 w-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                <Receipt className="h-4 w-4 text-red-600" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <CardContent className="p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold text-red-600">
                 {selectedCurrency.symbol}{expensesForSelectedPeriod.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 flex items-center">
                 <TrendingDown className="h-3 w-3 mr-1" />
-                Total expenses for the selected period
+                Total spent in {displayPeriod}
               </p>
             </CardContent>
           </Card>
 
           {/* Remaining Budget Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Remaining Budget</CardTitle>
-              <div className={`h-8 w-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform ${remainingBudget >= 0
-                ? 'bg-gradient-to-br from-blue-500 to-cyan-600'
-                : 'bg-gradient-to-br from-orange-500 to-red-600'
-                }`}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Cash Flow</CardTitle>
+              <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center",
+                remainingBudget >= 0 ? "bg-blue-100 dark:bg-blue-900/30" : "bg-orange-100 dark:bg-orange-900/30")}>
                 {remainingBudget >= 0 ? (
-                  <ArrowUpRight className="h-4 w-4 text-white" />
+                  <ArrowUpRight className="h-4 w-4 text-blue-600" />
                 ) : (
-                  <ArrowDownRight className="h-4 w-4 text-white" />
+                  <ArrowDownRight className="h-4 w-4 text-orange-600" />
                 )}
               </div>
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${remainingBudget >= 0 ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}`}>
+            <CardContent className="p-4 pt-0">
+              <div className={cn("text-xl sm:text-2xl font-bold",
+                remainingBudget >= 0 ? "text-blue-600" : "text-orange-600")}>
                 {selectedCurrency.symbol}{Math.abs(remainingBudget).toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 flex items-center">
                 <Target className="h-3 w-3 mr-1" />
-                {remainingBudget >= 0 ? 'Available funds' : 'Over budget'} for {displayPeriod}
+                {remainingBudget >= 0 ? 'Surplus' : 'Deficit'} for the period
               </p>
             </CardContent>
           </Card>
 
           {/* Income Tax Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Income Tax for {displayPeriod}</CardTitle>
-              <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Receipt className="h-4 w-4 text-white" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Taxes Paid</CardTitle>
+              <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                <Receipt className="h-4 w-4 text-purple-600" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <CardContent className="p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {selectedCurrency.symbol}{incomeTaxForPeriod.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                <Calendar className="h-3 w-3 mr-1" />
-                {isYearlyView ? 'Total income tax paid for the year' : 'Income tax deducted for the month'}
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">
+                <Calendar className="h-3 w-3 mr-1 inline" />
+                Total deductions identified as tax
               </p>
             </CardContent>
           </Card>
 
           {/* Total Contributions Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Contributions for {displayPeriod}</CardTitle>
-              <div className="h-8 w-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <PiggyBank className="h-4 w-4 text-white" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Savings Contrib.</CardTitle>
+              <div className="h-8 w-8 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
+                <PiggyBank className="h-4 w-4 text-teal-600" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+            <CardContent className="p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold text-teal-600">
                 {selectedCurrency.symbol}{totalContributions.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                Total contributions made in the selected period
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                <TrendingUp className="h-3 w-3 mr-1 inline" />
+                Added to savings this period
               </p>
             </CardContent>
           </Card>
 
           {/* Total Savings & Investments Card */}
-          <Card className="card-elevated hover-lift group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Savings & Investments</CardTitle>
-              <div className="h-8 w-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <TrendingUp className="h-4 w-4 text-white" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Wealth Portfolio</CardTitle>
+              <div className="h-8 w-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-indigo-600" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            <CardContent className="p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold text-indigo-600">
                 {selectedCurrency.symbol}{totalSavingsAndInvestments.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                <PiggyBank className="h-3 w-3 mr-1" />
-                Current value of all instruments + contributions for {displayPeriod}
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                Current value + contribs
               </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Recent Activity Card */}
-        <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold flex items-center">
+        <Card>
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
-              Recent Activity ({displayPeriod})
+              Recent Activity
             </CardTitle>
-            <CardDescription>
-              Your latest financial transactions and activities
+            <CardDescription className="text-xs sm:text-sm">
+              Latest transactions for {displayPeriod}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             {recentExpensesForPeriod.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-10">
                 <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
                   <Receipt className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground">No recent expenses recorded for this period.</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">No recent expenses found.</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {recentExpensesForPeriod.map((expense) => (
-                  <div key={expense.id} className={`flex justify-between items-center py-3 px-4 rounded-lg bg-gradient-to-r from-muted/50 to-transparent border border-border/50 hover-lift stagger-item`}>
+                  <div key={expense.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Receipt className="h-4 w-4 text-white" />
+                      <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Receipt className="h-4 w-4 text-primary" />
                       </div>
-                      <div>
-                        <span className="font-medium">{expense.description || expense.category}</span>
-                        <p className="text-xs text-muted-foreground">{format(expense.date, 'MMM dd, yyyy')}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{expense.description || expense.category}</p>
+                        <p className="text-[10px] text-muted-foreground">{format(expense.date, 'MMM dd, yyyy')}</p>
                       </div>
                     </div>
-                    <span className="font-bold text-red-600 dark:text-red-400">
+                    <span className="font-bold text-red-600 text-sm whitespace-nowrap ml-2">
                       -{selectedCurrency.symbol}{expense.amount.toFixed(2)}
                     </span>
                   </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -46,7 +45,7 @@ const expenseFormSchema = z.object({
 }).refine((data) => {
   // If recurring and end date components are provided, validate the end date
   if (data.isRecurring && data.endYear && data.endMonth && data.endDay) {
-    const endDate = new Date(parseInt(data.endYear), parseInt(data.endMonth), parseInt(data.endDay));
+    const endDate = new Date(parseInt(data.endYear || "0"), parseInt(data.endMonth || "0"), parseInt(data.endDay || "0"));
     return endDate > data.date;
   }
   return true;
@@ -74,11 +73,11 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
         date: new Date(),
         description: "",
         isRecurring: false,
-        recurrenceInterval: 'monthly',
+        recurrenceInterval: 'monthly' as const,
         endYear: "",
         endMonth: "",
         endDay: "",
-      };
+      } as const;
     }
 
     // Extract end date components if available
@@ -98,20 +97,19 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
       date: initialData.date,
       description: initialData.description || "",
       isRecurring: initialData.isRecurring || false,
-      recurrenceInterval: initialData.recurrenceInterval || 'monthly',
+      recurrenceInterval: (initialData.recurrenceInterval as 'monthly') || 'monthly',
       endYear,
       endMonth,
       endDay,
-    };
+    } as const;
   };
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
-    defaultValues: getFormDefaultValues(),
+    defaultValues: getFormDefaultValues() as any,
   });
 
   const isRecurring = form.watch("isRecurring");
-  const startDate = form.watch("date");
   const selectedEndYear = form.watch("endYear");
   const selectedEndMonth = form.watch("endMonth");
 
@@ -119,7 +117,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
     // Convert the separate date components into a single Date object
     let endDate: Date | undefined = undefined;
     if (values.endYear && values.endMonth && values.endDay) {
-      endDate = new Date(parseInt(values.endYear), parseInt(values.endMonth), parseInt(values.endDay));
+      endDate = new Date(parseInt(values.endYear || "0"), parseInt(values.endMonth || "0"), parseInt(values.endDay || "0"));
     }
 
     const submitData = {
@@ -128,12 +126,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
       date: values.date,
       description: values.description,
       isRecurring: values.isRecurring,
-      recurrenceInterval: values.recurrenceInterval,
+      recurrenceInterval: values.recurrenceInterval as "monthly",
       endDate,
     };
 
     onSubmit(submitData);
-    
+
     // Only reset the form if it's not an edit (no initialData)
     if (!initialData) {
       form.reset({
@@ -142,11 +140,11 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
         date: new Date(),
         description: "",
         isRecurring: false,
-        recurrenceInterval: 'monthly',
+        recurrenceInterval: 'monthly' as const,
         endYear: "",
         endMonth: "",
         endDay: "",
-      });
+      } as const);
     }
   };
 
@@ -182,15 +180,15 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
   // Generate day options based on selected month and year
   const getDaysInMonth = (year: string, month: string) => {
     if (!year || !month) return [];
-    const daysInMonth = new Date(parseInt(year), parseInt(month) + 1, 0).getDate();
+    const daysInMonth = new Date(parseInt(year || "0"), parseInt(month || "0") + 1, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
 
-  const availableDays = getDaysInMonth(selectedEndYear, selectedEndMonth);
+  const availableDays = getDaysInMonth(selectedEndYear || "", selectedEndMonth || "");
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit as any)} className="space-y-4">
         <FormField
           control={form.control}
           name="amount"
@@ -327,14 +325,14 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
                 </FormItem>
               )}
             />
-            
+
             {/* End Date Selection with Dropdowns */}
             <div className="space-y-3">
               <FormLabel>End Date (Optional)</FormLabel>
               <FormDescription>
                 When should this recurring expense stop? Leave empty for indefinite.
               </FormDescription>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 <FormField
                   control={form.control}
@@ -360,7 +358,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="endMonth"
@@ -385,15 +383,15 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="endDay"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm">Day</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         value={field.value}
                         disabled={!selectedEndYear || !selectedEndMonth}
                       >
@@ -415,15 +413,15 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit, initialData 
                   )}
                 />
               </div>
-              
+
               {selectedEndYear && selectedEndMonth && form.watch("endDay") && (
                 <div className="text-sm text-muted-foreground">
                   Selected end date: {format(
                     new Date(
-                      parseInt(selectedEndYear), 
-                      parseInt(selectedEndMonth), 
+                      parseInt(selectedEndYear || "0"),
+                      parseInt(selectedEndMonth || "0"),
                       parseInt(form.watch("endDay") || "1")
-                    ), 
+                    ),
                     "PPP"
                   )}
                 </div>

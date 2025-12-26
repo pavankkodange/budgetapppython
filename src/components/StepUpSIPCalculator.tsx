@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/context/CurrencyContext";
-import { Calculator, TrendingUp, Calendar, DollarSign, ArrowUp, Percent } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Calculator, TrendingUp, DollarSign, ArrowUp, Percent } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export const StepUpSIPCalculator: React.FC = () => {
   const { selectedCurrency } = useCurrency();
@@ -26,32 +26,30 @@ export const StepUpSIPCalculator: React.FC = () => {
   const calculateStepUpSIP = () => {
     const monthlyRate = expectedReturn / 100 / 12;
     const totalMonths = timePeriod * 12;
-    
+
     let stepUpMaturityValue = 0;
     let totalStepUpInvestment = 0;
     let currentMonthlyAmount = initialMonthlyInvestment;
-    
+
     // Calculate step-up SIP
     for (let month = 1; month <= totalMonths; month++) {
       // Increase amount annually
       if (month > 1 && (month - 1) % 12 === 0) {
         currentMonthlyAmount = currentMonthlyAmount * (1 + stepUpPercentage / 100);
       }
-      
+
       totalStepUpInvestment += currentMonthlyAmount;
-      
+
       // Calculate future value of this investment
       const remainingMonths = totalMonths - month + 1;
       const futureValue = currentMonthlyAmount * Math.pow(1 + monthlyRate, remainingMonths);
       stepUpMaturityValue += futureValue;
     }
-    
+
     // Calculate regular SIP for comparison
-    const regularSIPValue = initialMonthlyInvestment * 
+    const regularSIPValue = initialMonthlyInvestment *
       (((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate) * (1 + monthlyRate));
-    
-    const regularSIPInvestment = initialMonthlyInvestment * totalMonths;
-    
+
     const estimatedReturns = stepUpMaturityValue - totalStepUpInvestment;
     const additionalGain = stepUpMaturityValue - regularSIPValue;
 
@@ -90,19 +88,6 @@ export const StepUpSIPCalculator: React.FC = () => {
     },
   ];
 
-  // Data for comparison bar chart
-  const comparisonData = [
-    {
-      name: 'Regular SIP',
-      value: results.regularSIPValue,
-      color: '#f59e0b',
-    },
-    {
-      name: 'Step-up SIP',
-      value: results.maturityValue,
-      color: '#8b5cf6',
-    },
-  ];
 
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({
@@ -113,11 +98,11 @@ export const StepUpSIPCalculator: React.FC = () => {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
         fontSize="12"
         fontWeight="bold"
@@ -151,7 +136,7 @@ export const StepUpSIPCalculator: React.FC = () => {
               placeholder="5000"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="step-up-percentage">Annual Step-up Percentage (%)</Label>
             <Input
@@ -166,7 +151,7 @@ export const StepUpSIPCalculator: React.FC = () => {
               Recommended: 5-15% to beat inflation
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="expected-return-stepup">Expected Annual Return (%)</Label>
             <Input
@@ -178,7 +163,7 @@ export const StepUpSIPCalculator: React.FC = () => {
               placeholder="12"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="time-period-stepup">Time Period (Years)</Label>
             <Input
@@ -189,7 +174,7 @@ export const StepUpSIPCalculator: React.FC = () => {
               placeholder="10"
             />
           </div>
-          
+
           <Button onClick={calculateStepUpSIP} className="w-full">
             Calculate Step-up SIP
           </Button>
@@ -272,7 +257,7 @@ export const StepUpSIPCalculator: React.FC = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => [
                     `${selectedCurrency.symbol}${value.toLocaleString()}`,
                     ''

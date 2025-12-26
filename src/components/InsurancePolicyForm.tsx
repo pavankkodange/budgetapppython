@@ -75,17 +75,25 @@ const relationOptions = [
   "Spouse", "Child", "Parent", "Sibling", "Other Family Member"
 ];
 
-export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({ 
-  onSubmit, 
-  initialData, 
-  isEditing = false 
+export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({
+  onSubmit,
+  initialData,
+  isEditing = false
 }) => {
   const form = useForm<InsurancePolicyFormValues>({
     resolver: zodResolver(insurancePolicyFormSchema),
     defaultValues: initialData ? {
       ...initialData,
       familyMembers: initialData.familyMembers?.join(', ') || '',
-    } : {
+      roomRentLimit: initialData.roomRentLimit || 0,
+      copaymentPercentage: initialData.copaymentPercentage || 0,
+      waitingPeriod: initialData.waitingPeriod || 0,
+      beneficiaryName: initialData.beneficiaryName || "",
+      beneficiaryRelation: initialData.beneficiaryRelation || "",
+      agentName: initialData.agentName || "",
+      agentContact: initialData.agentContact || "",
+      notes: initialData.notes || "",
+    } as any : {
       policyNumber: "",
       policyType: "Health",
       insurerName: "",
@@ -115,11 +123,11 @@ export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({
     // Convert familyMembers string to array
     const processedValues = {
       ...values,
-      familyMembers: values.familyMembers 
+      familyMembers: values.familyMembers
         ? values.familyMembers.split(',').map(member => member.trim()).filter(Boolean)
         : undefined,
     };
-    
+
     onSubmit(processedValues as any);
     if (!isEditing) {
       form.reset();
@@ -398,7 +406,7 @@ export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({
         {selectedPolicyType === 'Health' && (
           <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
             <h3 className="text-lg font-semibold">Health Insurance Details</h3>
-            
+
             <FormField
               control={form.control}
               name="familyMembers"
@@ -467,7 +475,7 @@ export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({
         {selectedPolicyType === 'Term Life' && (
           <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
             <h3 className="text-lg font-semibold">Term Life Insurance Details</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -514,7 +522,7 @@ export const InsurancePolicyForm: React.FC<InsurancePolicyFormProps> = ({
         {/* Agent Details */}
         <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
           <h3 className="text-lg font-semibold">Agent Details (Optional)</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}

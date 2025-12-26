@@ -2,14 +2,11 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -54,10 +51,10 @@ const deductionTypes = [
   "Other"
 ];
 
-export const TaxDeductionForm: React.FC<TaxDeductionFormProps> = ({ 
-  onSubmit, 
-  initialData, 
-  isEditing = false 
+export const TaxDeductionForm: React.FC<TaxDeductionFormProps> = ({
+  onSubmit,
+  initialData,
+  isEditing = false
 }) => {
   const form = useForm<TaxDeductionFormValues>({
     resolver: zodResolver(taxDeductionFormSchema),

@@ -54,14 +54,23 @@ interface AssetFormProps {
   isEditing?: boolean;
 }
 
-export const AssetForm: React.FC<AssetFormProps> = ({ 
-  onSubmit, 
-  initialData, 
-  isEditing = false 
+export const AssetForm: React.FC<AssetFormProps> = ({
+  onSubmit,
+  initialData,
+  isEditing = false
 }) => {
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      notes: (initialData as any).notes || "",
+      serialNumber: (initialData as any).serialNumber || "",
+      model: (initialData as any).model || "",
+      brand: (initialData as any).brand || "",
+      location: (initialData as any).location || "",
+      description: initialData.description || "",
+      isActive: initialData.isActive ?? true,
+    } as any : {
       name: "",
       category: "Electronics",
       purchaseDate: new Date(),
@@ -78,7 +87,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   });
 
   const handleSubmit = (values: AssetFormValues) => {
-    onSubmit(values);
+    onSubmit(values as any);
   };
 
   return (

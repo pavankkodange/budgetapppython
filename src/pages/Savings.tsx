@@ -1,7 +1,4 @@
 import React, { useState } from "react";
-import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Sidebar } from "@/components/Sidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { format, isSameMonth, isSameYear } from "date-fns";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSavingsEntries } from "@/context/SavingsEntryContext";
@@ -31,6 +28,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { BackButton } from "@/components/ui/back-button";
 
 const SavingsPage = () => {
   const isMobile = useIsMobile();
@@ -149,156 +148,163 @@ const SavingsPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col ${isMobile ? "pt-16" : "ml-64"}`}>
-        <header className="p-4 border-b border-border flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Savings</h1>
-          <div className="flex items-center space-x-2">
-            <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Select Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map(month => (
-                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Dialog open={isAddContributionDialogOpen} onOpenChange={setIsAddContributionDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" /> Add Savings
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Savings Contribution</DialogTitle>
-                </DialogHeader>
-                <SavingsForm onSubmit={handleAddContribution} />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </header>
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="bg-card p-6 rounded-lg shadow-sm border border-border mb-8">
-            <h2 className="text-xl font-semibold mb-2">Total Contributions for {months[parseInt(selectedMonth)].label} {selectedYear}</h2>
-            <p className="text-3xl font-bold text-green-600">
-              {selectedCurrency.symbol}{totalSavingsForPeriod.toFixed(2)}
-            </p>
-            <p className="text-muted-foreground text-sm mt-2">Total contributions made in the selected period</p>
-          </div>
+    <>
+      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center space-x-2">
+          <BackButton />
+          <h1 className="text-xl sm:text-2xl font-bold">Savings</h1>
+        </div>
+        <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
+            <SelectTrigger className="w-[100px] sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm shrink-0">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map(month => (
+                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
+            <SelectTrigger className="w-[80px] sm:w-[100px] h-9 sm:h-10 text-xs sm:text-sm shrink-0">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map(year => (
+                <SelectItem key={year} value={year}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Dialog open={isAddContributionDialogOpen} onOpenChange={setIsAddContributionDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="h-9 sm:h-10 shrink-0">
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" /> {isMobile ? "Add" : "Add Savings"}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Savings Contribution</DialogTitle>
+              </DialogHeader>
+              <SavingsForm onSubmit={handleAddContribution} />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </header>
+      <main className="flex-1 p-3 sm:p-6 overflow-auto">
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border mb-8">
+          <h2 className="text-xl font-semibold mb-2">Total Contributions for {months[parseInt(selectedMonth)].label} {selectedYear}</h2>
+          <p className="text-3xl font-bold text-green-600">
+            {selectedCurrency.symbol}{totalSavingsForPeriod.toFixed(2)}
+          </p>
+          <p className="text-muted-foreground text-sm mt-2">Total contributions made in the selected period</p>
+        </div>
 
-          {/* Section to display Savings Instruments with their current balances */}
-          <div className="bg-card p-6 rounded-lg shadow-sm border border-border mb-8">
-            <h2 className="text-xl font-semibold mb-4">Your Savings Instruments</h2>
-            {savingsInstruments.length === 0 ? (
-              <p className="text-muted-foreground text-center">
-                No savings instruments defined. Go to the Admin panel to add some!
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {/* Table Header */}
-                <div className="grid grid-cols-3 gap-4 py-2 px-3 font-semibold text-muted-foreground border-b border-border">
-                  <span>Instrument</span>
-                  <span className="text-right">Amount Invested</span>
-                  <span className="text-right">Current Value</span>
-                </div>
-                {/* Instrument List */}
-                {savingsInstruments.map((instrument) => (
-                  <div key={instrument.id} className="grid grid-cols-3 gap-4 items-center py-2 px-3 border border-border rounded-md bg-muted/50">
-                    <span className="font-medium">{instrument.name}</span>
-                    <div className="relative flex items-center justify-end">
-                      <span className="absolute left-3 text-muted-foreground">{selectedCurrency.symbol}</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder=""
-                        value={tempTotalInvestedValues[instrument.id] || ""}
-                        onChange={(e) => handleTotalInvestedChange(instrument.id, e.target.value)}
-                        className="pl-8 w-32 text-right"
-                      />
+        {/* Section to display Savings Instruments with their current balances */}
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border mb-8">
+          <h2 className="text-xl font-semibold mb-4">Your Savings Instruments</h2>
+          {savingsInstruments.length === 0 ? (
+            <p className="text-muted-foreground text-center">
+              No savings instruments defined. Go to the Admin panel to add some!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {/* Table Header - Hidden on mobile */}
+              <div className="hidden sm:grid grid-cols-3 gap-4 py-2 px-3 font-semibold text-muted-foreground border-b border-border">
+                <span>Instrument</span>
+                <span className="text-right">Amount Invested</span>
+                <span className="text-right">Current Value</span>
+              </div>
+              {/* Instrument List */}
+              {savingsInstruments.map((instrument) => (
+                <div key={instrument.id} className="flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-4 items-start sm:items-center py-3 px-3 border border-border rounded-md bg-muted/50">
+                  <span className="font-medium text-sm sm:text-base">{instrument.name}</span>
+                  <div className="grid grid-cols-2 sm:contents w-full gap-2">
+                    <div className="sm:contents">
+                      <span className="text-[10px] text-muted-foreground sm:hidden">Invested</span>
+                      <div className="relative flex items-center justify-end">
+                        <span className="absolute left-3 text-muted-foreground text-xs">{selectedCurrency.symbol}</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={tempTotalInvestedValues[instrument.id] || ""}
+                          onChange={(e) => handleTotalInvestedChange(instrument.id, e.target.value)}
+                          className="pl-7 sm:pl-8 w-full sm:w-32 text-right h-8 sm:h-10 text-xs sm:text-sm"
+                        />
+                      </div>
                     </div>
-                    <div className="relative flex items-center justify-end">
-                      <span className="absolute left-3 text-muted-foreground">{selectedCurrency.symbol}</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder=""
-                        value={tempCurrentValues[instrument.id] || ""}
-                        onChange={(e) => handleCurrentValueChange(instrument.id, e.target.value)}
-                        className="pl-8 w-32 text-right"
-                      />
+                    <div className="sm:contents">
+                      <span className="text-[10px] text-muted-foreground sm:hidden">Current</span>
+                      <div className="relative flex items-center justify-end">
+                        <span className="absolute left-3 text-muted-foreground text-xs">{selectedCurrency.symbol}</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={tempCurrentValues[instrument.id] || ""}
+                          onChange={(e) => handleCurrentValueChange(instrument.id, e.target.value)}
+                          className="pl-7 sm:pl-8 w-full sm:w-32 text-right h-8 sm:h-10 text-xs sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+          <h2 className="text-xl font-semibold mb-4">Recent Savings Contributions ({months[parseInt(selectedMonth)].label} {selectedYear})</h2>
+          {filteredSavingsEntries.length === 0 ? (
+            <p className="text-muted-foreground text-center">
+              No savings contributions recorded for the selected period. Click "Add Savings" to get started!
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {filteredSavingsEntries
+                .sort((a, b) => b.date.getTime() - a.date.getTime())
+                .map((entry) => (
+                  <div key={entry.id} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+                    <div>
+                      <p className="font-medium">{entry.instrument}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(entry.date, "PPP")} {entry.description && `- ${entry.description}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-green-600">
+                        +{selectedCurrency.symbol}{entry.amount.toFixed(2)}
+                      </span>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="icon" className="h-7 w-7">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently remove this savings contribution.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => removeSavingsEntry(entry.id)}>
+                              Continue
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
-            <h2 className="text-xl font-semibold mb-4">Recent Savings Contributions ({months[parseInt(selectedMonth)].label} {selectedYear})</h2>
-            {filteredSavingsEntries.length === 0 ? (
-              <p className="text-muted-foreground text-center">
-                No savings contributions recorded for the selected period. Click "Add Savings" to get started!
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {filteredSavingsEntries
-                  .sort((a, b) => b.date.getTime() - a.date.getTime())
-                  .map((entry) => (
-                    <div key={entry.id} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                      <div>
-                        <p className="font-medium">{entry.instrument}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(entry.date, "PPP")} {entry.description && `- ${entry.description}`}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-bold text-green-600">
-                          +{selectedCurrency.symbol}{entry.amount.toFixed(2)}
-                        </span>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="icon" className="h-7 w-7">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently remove this savings contribution.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => removeSavingsEntry(entry.id)}>
-                                Continue
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        </main>
-        <MadeWithDyad />
-      </div>
-    </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 };
 

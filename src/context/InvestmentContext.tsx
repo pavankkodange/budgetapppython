@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { InvestmentAsset, Investment, InvestmentTransaction, Portfolio, InvestmentGoal, PolicyDocument } from '@/types';
 import { showSuccess, showError } from '@/utils/toast';
 
@@ -8,34 +8,34 @@ interface InvestmentContextType {
   addInvestmentAsset: (asset: Omit<InvestmentAsset, 'id' | 'lastUpdated'>) => void;
   updateInvestmentAsset: (id: string, updates: Partial<InvestmentAsset>) => void;
   removeInvestmentAsset: (id: string) => void;
-  
+
   // Investments
   investments: Investment[];
   addInvestment: (investment: Omit<Investment, 'id'>) => void;
   updateInvestment: (id: string, updates: Partial<Investment>) => void;
   removeInvestment: (id: string) => void;
-  
+
   // Transactions
   transactions: InvestmentTransaction[];
   addTransaction: (transaction: Omit<InvestmentTransaction, 'id'>) => void;
   removeTransaction: (id: string) => void;
-  
+
   // Portfolio
   portfolios: Portfolio[];
   createPortfolio: (portfolio: Omit<Portfolio, 'id' | 'lastUpdated'>) => void;
   updatePortfolio: (id: string, updates: Partial<Portfolio>) => void;
   removePortfolio: (id: string) => void;
-  
+
   // Goals
   investmentGoals: InvestmentGoal[];
   addInvestmentGoal: (goal: Omit<InvestmentGoal, 'id'>) => void;
   updateInvestmentGoal: (id: string, updates: Partial<InvestmentGoal>) => void;
   removeInvestmentGoal: (id: string) => void;
-  
+
   // Documents
   uploadDocument: (assetId: string, document: Omit<PolicyDocument, 'id' | 'uploadDate'>) => void;
   removeDocument: (assetId: string, documentId: string) => void;
-  
+
   // Calculations
   calculatePortfolioValue: (portfolioId?: string) => { totalInvested: number; currentValue: number; returns: number; returnPercentage: number };
   getInvestmentsByAsset: (assetId: string) => Investment[];
@@ -162,7 +162,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   const updateInvestmentAsset = (id: string, updates: Partial<InvestmentAsset>) => {
-    setInvestmentAssets(prev => prev.map(asset => 
+    setInvestmentAssets(prev => prev.map(asset =>
       asset.id === id ? { ...asset, ...updates, lastUpdated: new Date() } : asset
     ));
     showSuccess('Investment asset updated successfully!');
@@ -185,28 +185,27 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
       ...investmentData,
     };
     setInvestments(prev => [...prev, newInvestment]);
-    
+
     // Also add a transaction for this investment
-    const asset = investmentAssets.find(a => a.id === investmentData.assetId);
-    const transactionType = investmentData.investmentType === 'SIP' ? 'SIP' : 
-                           investmentData.investmentType === 'Recurring Deposit' ? 'Deposit' : 'Buy';
-    
+    const transactionType = investmentData.investmentType === 'SIP' ? 'SIP' :
+      investmentData.investmentType === 'Recurring Deposit' ? 'Deposit' : 'Buy';
+
     const transaction: InvestmentTransaction = {
       id: crypto.randomUUID(),
       investmentId: newInvestment.id,
-      type: transactionType as any,
+      type: transactionType as "Buy" | "Sell" | "SIP" | "Deposit" | "Withdrawal" | "Dividend" | "Interest",
       amount: investmentData.amount,
       units: investmentData.units,
       price: investmentData.purchasePrice,
       date: investmentData.purchaseDate,
     };
     setTransactions(prev => [...prev, transaction]);
-    
+
     showSuccess('Investment added successfully!');
   };
 
   const updateInvestment = (id: string, updates: Partial<Investment>) => {
-    setInvestments(prev => prev.map(inv => 
+    setInvestments(prev => prev.map(inv =>
       inv.id === id ? { ...inv, ...updates } : inv
     ));
     showSuccess('Investment updated successfully!');
@@ -231,7 +230,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
       ...transactionData,
     };
     setTransactions(prev => [...prev, newTransaction]);
-    
+
     // Update investment units and amount if it's a buy/sell transaction
     if (transactionData.type === 'Buy' || transactionData.type === 'SIP' || transactionData.type === 'Deposit') {
       setInvestments(prev => prev.map(inv => {
@@ -256,7 +255,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
         return inv;
       }));
     }
-    
+
     showSuccess('Transaction added successfully!');
   };
 
@@ -277,7 +276,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   const updatePortfolio = (id: string, updates: Partial<Portfolio>) => {
-    setPortfolios(prev => prev.map(portfolio => 
+    setPortfolios(prev => prev.map(portfolio =>
       portfolio.id === id ? { ...portfolio, ...updates, lastUpdated: new Date() } : portfolio
     ));
     showSuccess('Portfolio updated successfully!');
@@ -304,7 +303,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   const updateInvestmentGoal = (id: string, updates: Partial<InvestmentGoal>) => {
-    setInvestmentGoals(prev => prev.map(goal => 
+    setInvestmentGoals(prev => prev.map(goal =>
       goal.id === id ? { ...goal, ...updates } : goal
     ));
     showSuccess('Investment goal updated successfully!');
@@ -327,7 +326,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
       ...documentData,
       uploadDate: new Date(),
     };
-    
+
     setInvestmentAssets(prev => prev.map(asset => {
       if (asset.id === assetId) {
         return {
@@ -338,7 +337,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
       }
       return asset;
     }));
-    
+
     showSuccess('Document uploaded successfully!');
   };
 
@@ -347,7 +346,7 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
       if (asset.id === assetId) {
         return {
           ...asset,
-          documents: asset.documents?.filter(doc => doc.id !== documentId) || [],
+          documents: asset.documents?.filter((doc: PolicyDocument) => doc.id !== documentId) || [],
           lastUpdated: new Date(),
         };
       }
@@ -359,14 +358,14 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
   // Calculation functions
   const calculatePortfolioValue = (portfolioId?: string) => {
     let relevantInvestments = investments;
-    
+
     if (portfolioId) {
       const portfolio = portfolios.find(p => p.id === portfolioId);
       relevantInvestments = portfolio?.investments || [];
     }
 
     const totalInvested = relevantInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-    
+
     // Calculate current value based on current price
     const currentValue = relevantInvestments.reduce((sum, inv) => {
       const asset = investmentAssets.find(a => a.id === inv.assetId);

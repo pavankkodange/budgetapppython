@@ -31,3 +31,211 @@ export interface PolicyDocument {
   fileUrl?: string;
   fileData?: string;
 }
+
+export interface Expense {
+  id: string;
+  date: Date;
+  amount: number;
+  category: string;
+  description?: string;
+  isRecurring?: boolean;
+  recurrenceInterval?: 'monthly';
+  nextDueDate?: Date;
+  endDate?: Date;
+}
+
+export interface SavingsEntry {
+  id: string;
+  date: Date;
+  amount: number;
+  instrument: string;
+  description?: string;
+  attachments?: DocumentAttachment[];
+}
+
+export interface SavingsInstrument {
+  id: string;
+  name: string;
+  currentValue: number;
+  totalInvested: number;
+  category?: string;
+}
+
+export type IncomeSourceType = 'income' | 'deduction';
+export type DeductionCategory = 'tax_or_actual_deduction' | 'employer_contribution';
+
+export interface IncomeSource {
+  id: string;
+  name: string;
+  type: IncomeSourceType;
+  deductionCategory?: DeductionCategory;
+}
+
+export interface Income {
+  id: string;
+  source: string;
+  amount: number;
+  date: Date;
+  description?: string;
+  category?: string;
+  deductions?: { name: string; amount: number }[];
+  attachments?: DocumentAttachment[];
+}
+
+export interface MonthlyIncomeSummary {
+  id?: string;
+  month: number;
+  year: number;
+  lineItems: { [key: string]: number };
+  additionalIncomes?: Income[];
+  attachments?: DocumentAttachment[];
+}
+
+export interface InvestmentAsset {
+  id: string;
+  name: string;
+  type: 'Mutual Fund' | 'Emergency Fund' | 'Savings Bank Deposit' | 'Gold' | 'Stocks' | 'Cryptocurrency' | 'Real Estate';
+  category?: string;
+  currentPrice: number;
+  riskLevel: 'Low' | 'Moderate' | 'High' | 'Very High';
+  isActive: boolean;
+  lastUpdated: Date;
+  documents: PolicyDocument[];
+  symbol?: string;
+  fundHouse?: string;
+  schemeCode?: string;
+  expenseRatio?: number;
+  interestRate?: number;
+  maturityDate?: Date;
+  purity?: string;
+  exchange?: string;
+  propertyType?: string;
+  location?: string;
+  area?: number;
+  areaUnit?: string;
+  rentalIncome?: number;
+  purchaseYear?: number;
+}
+
+export interface Investment {
+  id: string;
+  assetId: string;
+  amount: number;
+  units: number;
+  purchasePrice: number;
+  purchaseDate: Date;
+  maturityDate?: Date;
+  investmentType: string;
+}
+
+export interface InvestmentTransaction {
+  id: string;
+  investmentId: string;
+  type: 'Buy' | 'Sell' | 'SIP' | 'Deposit' | 'Withdrawal' | 'Dividend' | 'Interest';
+  amount: number;
+  units: number;
+  price: number;
+  date: Date;
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  investments: Investment[];
+  lastUpdated: Date;
+}
+
+export interface InvestmentGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: Date;
+  monthlyContribution?: number;
+  description?: string;
+}
+
+export interface Asset {
+  id: string;
+  name: string;
+  category: string;
+  purchasePrice: number;
+  currentValue: number;
+  purchaseDate: Date;
+  warrantyEndDate?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  documents: AssetDocument[];
+  serialNumber?: string;
+  model?: string;
+  brand?: string;
+  location?: string;
+  description?: string;
+  notes?: string;
+}
+
+export interface AssetDocument {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  uploadDate: Date;
+  documentType: "Invoice" | "Warranty" | "Manual" | "Insurance" | "Other";
+  fileUrl?: string;
+  fileData?: string;
+}
+
+export interface MaintenanceRecord {
+  id: string;
+  assetId: string;
+  date: Date;
+  description: string;
+  cost: number;
+  serviceProvider?: string;
+  provider?: string; // Align with Assets.tsx usage
+  type?: string;     // Align with Assets.tsx usage
+  nextServiceDate?: Date;
+  documents: AssetDocument[];
+  notes?: string;    // Align with Assets.tsx usage
+}
+
+export interface InsurancePolicy {
+  id: string;
+  policyNumber: string;
+  policyType: 'Health' | 'Term Life' | 'Motor' | 'Home' | 'Travel' | 'Other';
+  insurerName: string;
+  policyHolderName: string;
+  premiumAmount: number;
+  premiumFrequency: 'Monthly' | 'Quarterly' | 'Half-Yearly' | 'Yearly';
+  policyStartDate: Date;
+  policyEndDate: Date;
+  nextPremiumDueDate: Date;
+  sumInsured: number;
+  isActive: boolean;
+  policyDocuments: PolicyDocument[];
+  createdAt: Date;
+  updatedAt: Date;
+  familyMembers?: string[];
+  roomRentLimit?: number;
+  copaymentPercentage?: number;
+  waitingPeriod?: number;
+  beneficiaryName?: string;
+  beneficiaryRelation?: string;
+  agentName?: string;
+  agentContact?: string;
+  notes?: string;
+}
+
+export interface InsuranceClaim {
+  id: string;
+  policyId: string;
+  claimNumber: string;
+  claimDate: Date;
+  claimAmount: number;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Settled';
+  description?: string;
+  settlementDate?: Date;
+  settlementAmount?: number;
+  documents: PolicyDocument[];
+}

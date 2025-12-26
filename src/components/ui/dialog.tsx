@@ -42,12 +42,29 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      {!children.some(child => 
-        child.type === DialogPrimitive.Title || 
-        (child.type === DialogHeader && child.props?.children?.some?.(c => c.type === DialogPrimitive.Title))
-      ) && (
-        <DialogPrimitive.Title className="sr-only">Dialog</DialogPrimitive.Title>
-      )}
+      {(() => {
+        const childrenArray = React.Children.toArray(children);
+        const hasTitle = childrenArray.some((child) => {
+          if (!React.isValidElement(child)) return false;
+
+          // Check if child is DialogTitle
+          if (child.type === DialogPrimitive.Title || child.type === DialogTitle) return true;
+
+          // Check if child is DialogHeader and has a DialogTitle inside
+          if (child.type === DialogHeader) {
+            return React.Children.toArray((child.props as any).children).some(
+              (c) => React.isValidElement(c) && (c.type === DialogPrimitive.Title || c.type === DialogTitle)
+            );
+          }
+
+          return false;
+        });
+
+        if (!hasTitle) {
+          return <DialogPrimitive.Title className="sr-only">Dialog</DialogPrimitive.Title>;
+        }
+        return null;
+      })()}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>

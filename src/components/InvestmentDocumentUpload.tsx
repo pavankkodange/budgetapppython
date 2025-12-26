@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PolicyDocument } from '@/types';
 import { Upload, FileText, Trash2, Download, Eye } from 'lucide-react';
-import { showError, showSuccess } from '@/utils/toast';
+import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -92,7 +92,7 @@ export const InvestmentDocumentUpload: React.FC<InvestmentDocumentUploadProps> =
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-        
+
         const documentData: Omit<PolicyDocument, 'id' | 'uploadDate'> = {
           fileName: selectedFile.name,
           fileType: selectedFile.type,
@@ -104,7 +104,7 @@ export const InvestmentDocumentUpload: React.FC<InvestmentDocumentUploadProps> =
         onUpload(documentData);
         setSelectedFile(null);
         setDocumentType('');
-        
+
         // Reset file input
         const fileInput = document.getElementById('investment-file-upload') as HTMLInputElement;
         if (fileInput) {
@@ -132,32 +132,32 @@ export const InvestmentDocumentUpload: React.FC<InvestmentDocumentUploadProps> =
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const downloadDocument = (document: PolicyDocument) => {
-    if (document.fileData) {
+  const downloadDocument = (doc: PolicyDocument) => {
+    if (doc.fileData) {
       const link = document.createElement('a');
-      link.href = document.fileData;
-      link.download = document.fileName;
+      link.href = doc.fileData;
+      link.download = doc.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
   };
 
-  const previewDocument = (document: PolicyDocument) => {
-    if (document.fileData) {
+  const previewDocument = (doc: PolicyDocument) => {
+    if (doc.fileData) {
       const newWindow = window.open();
       if (newWindow) {
-        if (document.fileType.startsWith('image/')) {
+        if (doc.fileType.startsWith('image/')) {
           newWindow.document.write(`
             <html>
-              <head><title>${document.fileName}</title></head>
+              <head><title>${doc.fileName}</title></head>
               <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;">
-                <img src="${document.fileData}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                <img src="${doc.fileData}" style="max-width:100%;max-height:100%;object-fit:contain;" />
               </body>
             </html>
           `);
-        } else if (document.fileType === 'application/pdf') {
-          newWindow.location.href = document.fileData;
+        } else if (doc.fileType === 'application/pdf') {
+          newWindow.location.href = doc.fileData;
         } else {
           showError('Preview not available for this file type');
           newWindow.close();
@@ -280,7 +280,7 @@ export const InvestmentDocumentUpload: React.FC<InvestmentDocumentUploadProps> =
                         <Eye className="h-4 w-4" />
                       </Button>
                     )}
-                    
+
                     <Button
                       variant="ghost"
                       size="icon"

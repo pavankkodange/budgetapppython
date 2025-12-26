@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Asset, AssetDocument, MaintenanceRecord } from '@/types';
 import { showSuccess, showError } from '@/utils/toast';
 import { addMonths, isBefore, isAfter } from 'date-fns';
@@ -9,17 +9,17 @@ interface AssetContextType {
   addAsset: (asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'documents'>) => void;
   updateAsset: (id: string, updates: Partial<Asset>) => void;
   removeAsset: (id: string) => void;
-  
+
   // Documents
   uploadDocument: (assetId: string, document: Omit<AssetDocument, 'id' | 'uploadDate'>) => void;
   removeDocument: (assetId: string, documentId: string) => void;
-  
+
   // Maintenance Records
   maintenanceRecords: MaintenanceRecord[];
   addMaintenanceRecord: (record: Omit<MaintenanceRecord, 'id' | 'documents'>) => void;
   updateMaintenanceRecord: (id: string, updates: Partial<MaintenanceRecord>) => void;
   removeMaintenanceRecord: (id: string) => void;
-  
+
   // Utilities
   getAssetsByCategory: (category: Asset['category']) => Asset[];
   getExpiringWarranties: (withinDays: number) => Asset[];
@@ -92,7 +92,7 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const updateAsset = (id: string, updates: Partial<Asset>) => {
-    setAssets(prev => prev.map(asset => 
+    setAssets(prev => prev.map(asset =>
       asset.id === id ? { ...asset, ...updates, updatedAt: new Date() } : asset
     ));
     showSuccess('Asset updated successfully!');
@@ -116,7 +116,7 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       ...documentData,
       uploadDate: new Date(),
     };
-    
+
     setAssets(prev => prev.map(asset => {
       if (asset.id === assetId) {
         return {
@@ -127,7 +127,7 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       return asset;
     }));
-    
+
     showSuccess('Document uploaded successfully!');
   };
 
@@ -156,7 +156,7 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const updateMaintenanceRecord = (id: string, updates: Partial<MaintenanceRecord>) => {
-    setMaintenanceRecords(prev => prev.map(record => 
+    setMaintenanceRecords(prev => prev.map(record =>
       record.id === id ? { ...record, ...updates } : record
     ));
     showSuccess('Maintenance record updated successfully!');
@@ -173,9 +173,9 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const getExpiringWarranties = (withinDays: number) => {
     const cutoffDate = addMonths(new Date(), Math.floor(withinDays / 30));
-    return assets.filter(asset => 
-      asset.isActive && 
-      asset.warrantyEndDate && 
+    return assets.filter(asset =>
+      asset.isActive &&
+      asset.warrantyEndDate &&
       isBefore(asset.warrantyEndDate, cutoffDate) &&
       isAfter(asset.warrantyEndDate, new Date())
     );
@@ -185,11 +185,11 @@ export const AssetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const purchaseValue = assets
       .filter(asset => asset.isActive)
       .reduce((sum, asset) => sum + asset.purchasePrice, 0);
-    
+
     const currentValue = assets
       .filter(asset => asset.isActive)
       .reduce((sum, asset) => sum + asset.currentValue, 0);
-    
+
     return { purchaseValue, currentValue };
   };
 

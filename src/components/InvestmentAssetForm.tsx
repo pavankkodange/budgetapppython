@@ -80,7 +80,9 @@ export const InvestmentAssetForm: React.FC<InvestmentAssetFormProps> = ({ onSucc
 
   const form = useForm<InvestmentAssetFormValues>({
     resolver: zodResolver(investmentAssetFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+    } as any : {
       name: "",
       type: "Mutual Fund",
       category: "",
@@ -101,9 +103,9 @@ export const InvestmentAssetForm: React.FC<InvestmentAssetFormProps> = ({ onSucc
 
   const handleSubmit = (values: InvestmentAssetFormValues) => {
     if (isEditing && initialData) {
-      updateInvestmentAsset(initialData.id, values);
+      updateInvestmentAsset(initialData.id, values as any);
     } else {
-      addInvestmentAsset(values);
+      addInvestmentAsset(values as any);
     }
     form.reset();
     if (onSuccess) {

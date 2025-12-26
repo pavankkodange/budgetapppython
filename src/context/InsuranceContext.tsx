@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { InsurancePolicy, PolicyDocument, InsuranceClaim } from '@/types';
 import { showSuccess, showError } from '@/utils/toast';
 import { addMonths, isBefore, isAfter } from 'date-fns';
@@ -9,17 +9,17 @@ interface InsuranceContextType {
   addPolicy: (policy: Omit<InsurancePolicy, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updatePolicy: (id: string, updates: Partial<InsurancePolicy>) => void;
   removePolicy: (id: string) => void;
-  
+
   // Documents
   uploadDocument: (policyId: string, document: Omit<PolicyDocument, 'id' | 'uploadDate'>) => void;
   removeDocument: (policyId: string, documentId: string) => void;
-  
+
   // Claims
   claims: InsuranceClaim[];
   addClaim: (claim: Omit<InsuranceClaim, 'id'>) => void;
   updateClaim: (id: string, updates: Partial<InsuranceClaim>) => void;
   removeClaim: (id: string) => void;
-  
+
   // Utilities
   getPoliciesByType: (type: InsurancePolicy['policyType']) => InsurancePolicy[];
   getExpiringPolicies: (withinDays: number) => InsurancePolicy[];
@@ -94,7 +94,7 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const updatePolicy = (id: string, updates: Partial<InsurancePolicy>) => {
-    setPolicies(prev => prev.map(policy => 
+    setPolicies(prev => prev.map(policy =>
       policy.id === id ? { ...policy, ...updates, updatedAt: new Date() } : policy
     ));
     showSuccess('Policy updated successfully!');
@@ -118,7 +118,7 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
       ...documentData,
       uploadDate: new Date(),
     };
-    
+
     setPolicies(prev => prev.map(policy => {
       if (policy.id === policyId) {
         return {
@@ -129,7 +129,7 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
       return policy;
     }));
-    
+
     showSuccess('Document uploaded successfully!');
   };
 
@@ -157,7 +157,7 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const updateClaim = (id: string, updates: Partial<InsuranceClaim>) => {
-    setClaims(prev => prev.map(claim => 
+    setClaims(prev => prev.map(claim =>
       claim.id === id ? { ...claim, ...updates } : claim
     ));
     showSuccess('Claim updated successfully!');
@@ -174,8 +174,8 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const getExpiringPolicies = (withinDays: number) => {
     const cutoffDate = addMonths(new Date(), Math.floor(withinDays / 30));
-    return policies.filter(policy => 
-      policy.isActive && 
+    return policies.filter(policy =>
+      policy.isActive &&
       isBefore(policy.policyEndDate, cutoffDate) &&
       isAfter(policy.policyEndDate, new Date())
     );
@@ -183,18 +183,18 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const getUpcomingPremiums = (withinDays: number) => {
     const cutoffDate = addMonths(new Date(), Math.floor(withinDays / 30));
-    return policies.filter(policy => 
-      policy.isActive && 
+    return policies.filter(policy =>
+      policy.isActive &&
       isBefore(policy.nextPremiumDueDate, cutoffDate) &&
       isAfter(policy.nextPremiumDueDate, new Date())
     );
   };
 
   const getTotalPremiumAmount = (frequency?: InsurancePolicy['premiumFrequency']) => {
-    const filteredPolicies = frequency 
+    const filteredPolicies = frequency
       ? policies.filter(p => p.isActive && p.premiumFrequency === frequency)
       : policies.filter(p => p.isActive);
-    
+
     return filteredPolicies.reduce((total, policy) => {
       // Convert all premiums to yearly amount for comparison
       let yearlyPremium = policy.premiumAmount;

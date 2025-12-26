@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { MonthlyIncomeSummary } from '@/types';
-import { showSuccess, showError } from '@/utils/toast';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { MonthlyIncomeSummary, DocumentAttachment } from '@/types';
+import { showSuccess } from '@/utils/toast';
 
 interface IncomeSummaryContextType {
   monthlyIncomeSummaries: MonthlyIncomeSummary[];
   saveMonthlyIncomeSummary: (summary: Omit<MonthlyIncomeSummary, 'id'>) => void;
   getMonthlyIncomeSummary: (month: number, year: number) => MonthlyIncomeSummary | undefined;
+  addDocumentToSummary: (month: number, year: number, document: Omit<DocumentAttachment, 'id' | 'uploadDate'>) => void;
+  removeDocumentFromSummary: (month: number, year: number, documentId: string) => void;
 }
 
 const LOCAL_STORAGE_KEY = 'monthlyIncomeSummaries';
@@ -24,7 +26,12 @@ export const IncomeSummaryProvider: React.FC<{ children: ReactNode }> = ({ child
           additionalIncomes: summary.additionalIncomes ? summary.additionalIncomes.map((income: any) => ({
             ...income,
             date: new Date(income.date)
-          })) : undefined
+          })) : undefined,
+          // Convert upload dates for attachments
+          attachments: summary.attachments ? summary.attachments.map((doc: any) => ({
+            ...doc,
+            uploadDate: new Date(doc.uploadDate)
+          })) : []
         }));
       }
       return [];
@@ -64,8 +71,49 @@ export const IncomeSummaryProvider: React.FC<{ children: ReactNode }> = ({ child
     return monthlyIncomeSummaries.find(s => s.month === month && s.year === year);
   };
 
+  const addDocumentToSummary = (month: number, year: number, document: Omit<DocumentAttachment, 'id' | 'uploadDate'>) => {
+    setMonthlyIncomeSummaries((prevSummaries) => {
+      return prevSummaries.map((summary) => {
+        if (summary.month === month && summary.year === year) {
+          const newDocument: DocumentAttachment = {
+            ...document,
+            id: crypto.randomUUID(),
+            uploadDate: new Date()
+          };
+          return {
+            ...summary,
+            attachments: [...(summary.attachments || []), newDocument]
+          };
+        }
+        return summary;
+      });
+    });
+    showSuccess("Document uploaded successfully!");
+  };
+
+  const removeDocumentFromSummary = (month: number, year: number, documentId: string) => {
+    setMonthlyIncomeSummaries((prevSummaries) => {
+      return prevSummaries.map((summary) => {
+        if (summary.month === month && summary.year === year) {
+          return {
+            ...summary,
+            attachments: (summary.attachments || []).filter(doc => doc.id !== documentId)
+          };
+        }
+        return summary;
+      });
+    });
+    showSuccess("Document removed successfully!");
+  };
+
   return (
-    <IncomeSummaryContext.Provider value={{ monthlyIncomeSummaries, saveMonthlyIncomeSummary, getMonthlyIncomeSummary }}>
+    <IncomeSummaryContext.Provider value={{
+      monthlyIncomeSummaries,
+      saveMonthlyIncomeSummary,
+      getMonthlyIncomeSummary,
+      addDocumentToSummary,
+      removeDocumentFromSummary
+    }}>
       {children}
     </IncomeSummaryContext.Provider>
   );

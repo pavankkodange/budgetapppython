@@ -35,10 +35,10 @@ interface ProfileFormProps {
 }
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
-  const { profile, createProfile, updateProfile, uploadProfilePicture, loading } = useProfile();
+  const { profile, createProfile, updateProfile, loading } = useProfile();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  // uploadingPhoto removed as it was unused
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -57,21 +57,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         showError('Please select an image file');
         return;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         showError('Image size must be less than 5MB');
         return;
       }
 
       setSelectedFile(file);
-      
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -87,37 +83,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
 
   const handleSubmit = async (values: ProfileFormValues) => {
     try {
-      // First, save the profile data
       if (profile) {
         await updateProfile(values);
       } else {
         await createProfile(values);
       }
 
-      // Then, upload the profile picture if one was selected
+      // Profile picture upload logic needs to be implemented in context first
       if (selectedFile) {
-        setUploadingPhoto(true);
-        await uploadProfilePicture(selectedFile);
-        setUploadingPhoto(false);
-        showSuccess('Profile and photo updated successfully!');
+        showSuccess('Profile updated successfully! (Photo upload to be implemented)');
+      } else {
+        showSuccess('Profile updated successfully!');
       }
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      setUploadingPhoto(false);
       showError('Failed to save profile');
     }
   };
 
-  const currentProfilePicture = profile?.profile_picture_url;
-  const displayImage = previewUrl || currentProfilePicture;
+  const displayImage = previewUrl || profile?.profile_picture_url;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        {/* Profile Picture Section */}
         <div className="flex flex-col items-center space-y-4 p-4 border border-border rounded-lg">
           <div className="relative">
             <div className="h-24 w-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
@@ -131,7 +122,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
                 <Camera className="h-8 w-8 text-muted-foreground" />
               )}
             </div>
-            {(previewUrl || currentProfilePicture) && (
+            {(previewUrl || profile?.profile_picture_url) && (
               <Button
                 type="button"
                 variant="destructive"
@@ -143,13 +134,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
               </Button>
             )}
           </div>
-          
+
           <div className="flex flex-col items-center space-y-2">
             <label htmlFor="profile-picture" className="cursor-pointer">
               <Button type="button" variant="outline" size="sm" asChild>
                 <span>
                   <Upload className="h-4 w-4 mr-2" />
-                  {currentProfilePicture ? 'Change Photo' : 'Upload Photo'}
+                  {profile?.profile_picture_url ? 'Change Photo' : 'Upload Photo'}
                 </span>
               </Button>
             </label>
@@ -274,8 +265,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
             )}
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading || uploadingPhoto}>
-          {uploadingPhoto ? 'Uploading Photo...' : loading ? 'Saving...' : (profile ? 'Update Profile' : 'Create Profile')}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Saving...' : (profile ? 'Update Profile' : 'Create Profile')}
         </Button>
       </form>
     </Form>

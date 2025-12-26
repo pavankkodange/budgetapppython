@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, PieChart, LineChart, Sparkles, TrendingUp, DollarSign, Calendar, Download, Printer, FileText, Filter } from "lucide-react";
+import { BarChart, PieChart, LineChart, Sparkles, TrendingUp, DollarSign, Calendar, Download, Printer, FileText } from "lucide-react";
 import AIChartGenerator from "@/components/AIChartGenerator";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useExpenses } from "@/context/ExpenseContext";
@@ -27,12 +27,14 @@ import {
   Cell
 } from 'recharts';
 import { showSuccess } from "@/utils/toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Reports = () => {
+  const isMobile = useIsMobile();
   const { selectedCurrency } = useCurrency();
   const { expenses } = useExpenses();
   const { monthlyIncomeSummaries } = useIncomeSummaries();
-  const { taxDeductions, getTotalDeductionsForYear } = useTaxDeductions();
+  const { getTotalDeductionsForYear } = useTaxDeductions();
 
   // State for standard reports
   const [selectedReport, setSelectedReport] = useState<string>("monthly-budget");
@@ -62,12 +64,13 @@ const Reports = () => {
       let monthlyGrossIncome = 0;
       let monthlyDeductions = 0;
 
-      for (const [source, amount] of Object.entries(summary.lineItems)) {
+      for (const [_, amount] of Object.entries(summary.lineItems)) {
+        const val = amount as number;
         // Determine if this is income or deduction based on positive/negative value
-        if (amount > 0) {
-          monthlyGrossIncome += amount;
+        if (val > 0) {
+          monthlyGrossIncome += val;
         } else {
-          monthlyDeductions += Math.abs(amount);
+          monthlyDeductions += Math.abs(val);
         }
       }
 
@@ -163,12 +166,13 @@ const Reports = () => {
           let totalIncome = 0;
           let totalDeductions = 0;
 
-          for (const [source, amount] of Object.entries(summary.lineItems)) {
+          for (const [_, amount] of Object.entries(summary.lineItems)) {
+            const val = amount as number;
             // Determine if this is income or deduction based on positive/negative value
-            if (amount > 0) {
-              totalIncome += amount;
+            if (val > 0) {
+              totalIncome += val;
             } else {
-              totalDeductions += Math.abs(amount);
+              totalDeductions += Math.abs(val);
             }
           }
 
@@ -239,19 +243,20 @@ const Reports = () => {
       .filter(summary => summary.year === year)
       .forEach(summary => {
         for (const [source, amount] of Object.entries(summary.lineItems)) {
+          const val = amount as number;
           // Add up all positive values as income
-          if (amount > 0) {
-            totalIncome += amount;
+          if (val > 0) {
+            totalIncome += val;
           }
 
           // Look for tax-related deductions
           const sourceLower = source.toLowerCase();
-          if (amount < 0 && (
+          if (val < 0 && (
             sourceLower.includes('tax') ||
             sourceLower.includes('tds') ||
             sourceLower.includes('income tax')
           )) {
-            totalTaxes += Math.abs(amount);
+            totalTaxes += Math.abs(val);
           }
         }
       });
@@ -524,7 +529,7 @@ const Reports = () => {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {expenseByCategoryData.map((entry, index) => (
+                        {expenseByCategoryData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -611,7 +616,7 @@ const Reports = () => {
                     <Tooltip formatter={(value) => `${selectedCurrency.symbol}${value.toLocaleString()}`} />
                     <Legend />
                     <Bar dataKey="value" name="Amount" fill="#8884d8">
-                      {taxSummaryData.map((entry, index) => (
+                      {taxSummaryData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Bar>
@@ -680,18 +685,20 @@ const Reports = () => {
 
   return (
     <>
-      <header className="p-4 border-b border-border flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center space-x-2">
           <BackButton />
           <div>
-            <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-            <p className="text-sm text-muted-foreground">Visualize your financial data with AI-powered insights</p>
+            <h1 className="text-xl sm:text-2xl font-bold">Reports</h1>
+            <p className="text-[10px] sm:text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">
+              Visualize your financial health and patterns
+            </p>
           </div>
         </div>
       </header>
-      <main className="flex-1 p-6 overflow-auto">
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+      <main className="flex-1 p-3 sm:p-6 overflow-auto">
+        <Tabs defaultValue="dashboard" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="standard-reports">Standard Reports</TabsTrigger>
             <TabsTrigger value="ai-charts">AI Chart Generator</TabsTrigger>
@@ -699,63 +706,62 @@ const Reports = () => {
 
           <TabsContent value="dashboard" className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Yearly Expenses</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Yearly Expenses</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {selectedCurrency.symbol}{yearlyExpenses.toLocaleString()}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total expenses for {currentYear}
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    Total for {currentYear}
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Monthly Expenses</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {selectedCurrency.symbol}{monthlyExpenses.toLocaleString()}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Expenses for {format(new Date(currentYear, currentMonth), 'MMMM yyyy')}
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                    {format(new Date(currentYear, currentMonth), 'MMMM yyyy')}
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Yearly Income</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Yearly Income</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {selectedCurrency.symbol}{yearlyIncome.toLocaleString()}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total income for {currentYear}
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    Net income for {currentYear}
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BarChart className="h-5 w-5 mr-2" />
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="flex items-center text-sm sm:text-base">
+                    <BarChart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Monthly Expenses ({currentYear})
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="h-[250px] sm:h-80 p-2 sm:p-6 pt-0 sm:pt-0">
                   {monthlyExpenseData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsBarChart data={monthlyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
@@ -776,13 +782,13 @@ const Reports = () => {
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <PieChart className="h-5 w-5 mr-2" />
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="flex items-center text-sm sm:text-base">
+                    <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Expenses by Category ({currentYear})
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="h-[300px] sm:h-80 p-2 sm:p-6 pt-0 sm:pt-0">
                   {expenseByCategoryData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>
@@ -790,13 +796,13 @@ const Reports = () => {
                           data={expenseByCategoryData}
                           cx="50%"
                           cy="50%"
-                          labelLine={true}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={120}
+                          labelLine={!isMobile}
+                          label={isMobile ? ({ percent }) => `${(percent * 100).toFixed(0)}%` : ({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={isMobile ? 80 : 120}
                           fill="#8884d8"
                           dataKey="value"
                         >
-                          {expenseByCategoryData.map((entry, index) => (
+                          {expenseByCategoryData.map((_, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>

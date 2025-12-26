@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -49,16 +48,20 @@ interface MaintenanceRecordFormProps {
   preselectedAssetId?: string;
 }
 
-export const MaintenanceRecordForm: React.FC<MaintenanceRecordFormProps> = ({ 
-  onSubmit, 
-  initialData, 
+export const MaintenanceRecordForm: React.FC<MaintenanceRecordFormProps> = ({
+  onSubmit,
+  initialData,
   isEditing = false,
   assets,
   preselectedAssetId
 }) => {
   const form = useForm<MaintenanceRecordFormValues>({
     resolver: zodResolver(maintenanceRecordFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      provider: initialData.provider || initialData.serviceProvider || "",
+      notes: initialData.notes || "",
+    } as any : {
       assetId: preselectedAssetId || "",
       date: new Date(),
       type: "Service",
@@ -70,7 +73,7 @@ export const MaintenanceRecordForm: React.FC<MaintenanceRecordFormProps> = ({
   });
 
   const handleSubmit = (values: MaintenanceRecordFormValues) => {
-    onSubmit(values);
+    onSubmit(values as any);
   };
 
   return (
