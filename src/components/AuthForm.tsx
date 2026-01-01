@@ -144,10 +144,21 @@ export const AuthForm: React.FC = () => {
     setLoading(true);
     setAuthError(null);
     try {
+      // Detect if running on mobile via Capacitor
+      const { Capacitor } = await import('@capacitor/core');
+      const isMobile = Capacitor.isNativePlatform();
+
+      // Use deep link for mobile, localhost for web
+      const redirectTo = isMobile
+        ? 'com.trackmyfunds.app://login-callback'
+        : window.location.origin;
+
+      console.log('OAuth redirect:', redirectTo, 'isMobile:', isMobile);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: redirectTo
         }
       });
       if (error) {

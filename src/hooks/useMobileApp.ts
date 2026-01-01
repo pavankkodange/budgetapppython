@@ -20,6 +20,29 @@ export const useMobileApp = () => {
                     await SplashScreen.hide();
                 }, 1000);
 
+                // Handle deep link OAuth callback
+                CapacitorApp.addListener('appUrlOpen', (data) => {
+                    console.log('Deep link received:', data.url);
+
+                    // Check if it's OAuth callback
+                    if (data.url.includes('login-callback')) {
+                        // Extract the URL hash/query params
+                        const url = new URL(data.url.replace('com.trackmyfunds.app://', 'https://temp.com/'));
+
+                        // If there's a hash (token response), process it
+                        if (url.hash) {
+                            console.log('Processing OAuth hash');
+                            // Update the window location hash so Supabase can pick it up
+                            window.location.hash = url.hash;
+                        }
+
+                        // Navigate to root to trigger auth state check
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 100);
+                    }
+                });
+
                 // Handle hardware back button
                 CapacitorApp.addListener('backButton', ({ canGoBack }) => {
                     if (!canGoBack) {
