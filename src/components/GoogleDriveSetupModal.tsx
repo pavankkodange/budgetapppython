@@ -27,9 +27,8 @@ export const GoogleDriveSetupModal: React.FC<GoogleDriveSetupModalProps> = ({
     const [connected, setConnected] = useState(false);
 
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-    const REDIRECT_URI = 'http://localhost:5173/drive-callback.html';
 
-    const handleConnect = () => {
+    const handleConnect = async () => {
         if (!GOOGLE_CLIENT_ID) {
             showError('Google Client ID not configured');
             return;
@@ -37,7 +36,22 @@ export const GoogleDriveSetupModal: React.FC<GoogleDriveSetupModalProps> = ({
 
         setConnecting(true);
 
-        const authUrl = getGoogleDriveAuthUrl(GOOGLE_CLIENT_ID, REDIRECT_URI);
+        // Detect if running on mobile
+        const { Capacitor } = await import('@capacitor/core');
+        const isMobile = Capacitor.isNativePlatform();
+        const redirectUri = isMobile
+            ? 'com.trackmyfunds.app://drive-callback'
+            : 'http://localhost:5173/drive-callback.html';
+
+        const authUrl = getGoogleDriveAuthUrl(GOOGLE_CLIENT_ID, redirectUri);
+
+        console.log('Drive OAuth redirect:', redirectUri, 'isMobile:', isMobile);
+
+        // On mobile, open in browser (callback handled by deep link)
+        if (isMobile) {
+            window.location.href = authUrl;
+            return;
+        }
 
         // Open OAuth in popup window
         const width = 600;

@@ -68,6 +68,37 @@ export const useMobileApp = () => {
                             console.error('Error processing OAuth callback:', error);
                         }
                     }
+                    // Handle Google Drive OAuth callback
+                    else if (data.url.includes('drive-callback')) {
+                        try {
+                            // Extract access token from Drive OAuth
+                            const urlParts = data.url.split('://');
+                            if (urlParts.length > 1) {
+                                const params = urlParts[1];
+                                console.log('Drive OAuth callback:', params);
+
+                                if (params.includes('#')) {
+                                    const hashPart = params.split('#')[1];
+                                    const urlParams = new URLSearchParams(hashPart);
+                                    const accessToken = urlParams.get('access_token');
+
+                                    if (accessToken) {
+                                        console.log('✅ Drive token received!');
+                                        // Import saveDriveToken
+                                        const { saveDriveToken } = await import('../services/googleDrive');
+                                        await saveDriveToken(accessToken);
+
+                                        // Show success and reload
+                                        const { showSuccess } = await import('../utils/toast');
+                                        showSuccess('Google Drive connected successfully!');
+                                        window.location.href = '/';
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error processing Drive callback:', error);
+                        }
+                    }
                 });
 
                 // Handle hardware back button
