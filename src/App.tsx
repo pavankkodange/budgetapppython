@@ -32,6 +32,7 @@ import { TaxDeductionProvider } from "./context/TaxDeductionContext";
 import { GoogleDriveSetupModal } from "./components/GoogleDriveSetupModal";
 import { isDriveConnected } from "./services/googleDrive";
 import { useEffect, useState } from "react";
+import { useMobileApp } from "./hooks/useMobileApp";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,9 @@ const AppContent = () => {
   const { user, loading } = useAuth();
   const [showDriveSetup, setShowDriveSetup] = useState(false);
   const [checkingDrive, setCheckingDrive] = useState(false);
+
+  // Initialize mobile app features
+  useMobileApp();
 
   console.log('AppContent render - User:', user?.email || 'No user', 'Loading:', loading);
 
