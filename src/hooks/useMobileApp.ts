@@ -21,25 +21,52 @@ export const useMobileApp = () => {
                 }, 1000);
 
                 // Handle deep link OAuth callback
-                CapacitorApp.addListener('appUrlOpen', (data) => {
+                CapacitorApp.addListener('appUrlOpen', async (data) => {
                     console.log('Deep link received:', data.url);
 
                     // Check if it's OAuth callback
                     if (data.url.includes('login-callback')) {
-                        // Extract the URL hash/query params
-                        const url = new URL(data.url.replace('com.trackmyfunds.app://', 'https://temp.com/'));
+                        try {
+                            // Import supabase client
+                            const { supabase } = await import('../lib/supabaseClient');
 
-                        // If there's a hash (token response), process it
-                        if (url.hash) {
-                            console.log('Processing OAuth hash');
-                            // Update the window location hash so Supabase can pick it up
-                            window.location.hash = url.hash;
+                            // Extract the full URL after the scheme
+                            const urlParts = data.url.split('://');
+                            if (urlParts.length > 1) {
+                                const params = urlParts[1];
+                                console.log('OAuth callback params:', params);
+
+                                // Check if there's a hash fragment with tokens
+                                if (params.includes('#')) {
+                                    const hashPart = params.split('#')[1];
+                                    const urlParams = new URLSearchParams(hashPart);
+
+                                    const accessToken = urlParams.get('access_token');
+                                    const refreshToken = urlParams.get('refresh_token');
+
+                                    console.log('Access token found:', !!accessToken);
+                                    console.log('Refresh token found:', !!refreshToken);
+
+                                    if (accessToken && refreshToken) {
+                                        // Use Supabase's setSession method
+                                        const { error } = await supabase.auth.setSession({
+                                            access_token: accessToken,
+                                            refresh_token: refreshToken
+                                        });
+
+                                        if (error) {
+                                            console.error('Error setting session:', error);
+                                        } else {
+                                            console.log('✅ Session set successfully!');
+                                            // Reload to trigger auth state update
+                                            window.location.href = '/';
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error processing OAuth callback:', error);
                         }
-
-                        // Navigate to root to trigger auth state check
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 100);
                     }
                 });
 
