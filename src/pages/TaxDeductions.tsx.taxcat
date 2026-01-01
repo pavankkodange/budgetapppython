@@ -416,7 +416,6 @@ const TaxDeductions = () => {
                         documents={selectedDeductionForDocs.attachments || []}
                         onUpload={(document) => uploadAttachment(selectedDeductionForDocs.id, document)}
                         onRemove={(documentId) => removeAttachment(selectedDeductionForDocs.id, documentId)}
-                      category="Tax Documents"
                       />
                     </CardContent>
                   </Card>

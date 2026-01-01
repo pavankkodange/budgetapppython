@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DocumentAttachment } from '@/types';
-import { Upload, FileText, Trash2, Download, Eye } from 'lucide-react';
-import { showError } from '@/utils/toast';
+import { Upload, FileText, Trash2, Download, Eye, ExternalLink, Cloud, AlertCircle } from 'lucide-react';
+import { showError, showSuccess } from '@/utils/toast';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -26,11 +27,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { isDriveConnected, uploadFileToDrive, deleteFileFromDrive, downloadFileFromDrive } from '@/services/googleDrive';
 
 interface DocumentUploadProps {
   documents: DocumentAttachment[];
   onUpload: (document: Omit<DocumentAttachment, 'id' | 'uploadDate'>) => void;
   onRemove: (documentId: string) => void;
+  category?: string;
 }
 
 const documentTypes = [
@@ -38,6 +41,9 @@ const documentTypes = [
   'Premium Receipt',
   'Claim Form',
   'Medical Reports',
+  'Tax Document',
+  'Invoice',
+  'Receipt',
   'Other'
 ];
 
@@ -45,21 +51,38 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   documents,
   onUpload,
   onRemove,
+  category = 'Documents',
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [driveConnected, setDriveConnected] = useState(false);
+  const [checkingDrive, setCheckingDrive] = useState(true);
+
+  useEffect(() => {
+    checkDriveConnection();
+  }, []);
+
+  const checkDriveConnection = async () => {
+    setCheckingDrive(true);
+    try {
+      const connected = await isDriveConnected();
+      setDriveConnected(connected);
+    } catch (error) {
+      console.error('Error checking Drive connection:', error);
+    } finally {
+      setCheckingDrive(false);
+    }
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        showError('File size must be less than 10MB');
+      if (file.size > 100 * 1024 * 1024) {
+        showError('File size must be less than 100MB');
         return;
       }
 
-      // Validate file type
       const allowedTypes = [
         'application/pdf',
         'image/jpeg',
@@ -84,40 +107,41 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       return;
     }
 
+    if (!driveConnected) {
+      showError('Please connect Google Drive first');
+      return;
+    }
+
     setUploading(true);
 
     try {
-      // Convert file to base64 for storage
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Data = reader.result as string;
+      const result = await uploadFileToDrive(selectedFile, category, {
+        documentType,
+        description: `${documentType} - ${category}`,
+      });
 
-        const documentData: Omit<DocumentAttachment, 'id' | 'uploadDate'> = {
-          fileName: selectedFile.name,
-          fileType: selectedFile.type,
-          fileSize: selectedFile.size,
-          documentType: documentType,
-          fileData: base64Data,
-        };
-
-        onUpload(documentData);
-        setSelectedFile(null);
-        setDocumentType('');
-
-        // Reset file input
-        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-        if (fileInput) {
-          fileInput.value = '';
-        }
+      const documentData: Omit<DocumentAttachment, 'id' | 'uploadDate'> = {
+        fileName: result.fileName,
+        fileType: selectedFile.type,
+        fileSize: result.fileSize,
+        documentType: documentType,
+        driveFileId: result.fileId,
+        driveWebViewLink: result.webViewLink,
+        driveThumbnailLink: result.thumbnailLink,
+        driveFolder: category,
       };
 
-      reader.onerror = () => {
-        showError('Failed to read file');
-      };
+      onUpload(documentData);
+      setSelectedFile(null);
+      setDocumentType('');
 
-      reader.readAsDataURL(selectedFile);
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
+      showSuccess(`✅ ${result.fileName} uploaded to Google Drive!`);
     } catch (error) {
-      showError('Failed to upload document');
+      console.error('Upload error:', error);
+      showError('Failed to upload to Google Drive. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -131,8 +155,23 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const downloadDocument = (doc: DocumentAttachment) => {
-    if (doc.fileData) {
+  const downloadDocument = async (doc: DocumentAttachment) => {
+    if (doc.driveFileId) {
+      try {
+        const blob = await downloadFileFromDrive(doc.driveFileId);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Download error:', error);
+        showError('Failed to download file from Drive');
+      }
+    } else if (doc.fileData) {
       const link = document.createElement('a');
       link.href = doc.fileData;
       link.download = doc.fileName;
@@ -143,36 +182,75 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   };
 
   const previewDocument = (doc: DocumentAttachment) => {
-    if (doc.fileData) {
-      const newWindow = window.open();
-      if (newWindow) {
-        if (doc.fileType.startsWith('image/')) {
-          newWindow.document.write(`
-            <html>
-              <head><title>${doc.fileName}</title></head>
-              <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;">
-                <img src="${doc.fileData}" style="max-width:100%;max-height:100%;object-fit:contain;" />
-              </body>
-            </html>
-          `);
-        } else if (doc.fileType === 'application/pdf') {
-          newWindow.location.href = doc.fileData;
-        } else {
-          showError('Preview not available for this file type');
-          newWindow.close();
-        }
+    if (doc.driveWebViewLink) {
+      window.open(doc.driveWebViewLink, '_blank');
+      return;
+    }
+
+    if (!doc.fileData) {
+      showError('No preview available for this document');
+      return;
+    }
+
+    const newWindow = window.open();
+    if (!newWindow) {
+      showError('Popup blocked. Please allow popups to preview documents.');
+      return;
+    }
+
+    try {
+      if (doc.fileType.startsWith('image/')) {
+        newWindow.document.write(`
+          <html>
+            <head><title>${doc.fileName}</title></head>
+            <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1a1a1a;">
+              <img src="${doc.fileData}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            </body>
+          </html>
+        `);
+      } else if (doc.fileType === 'application/pdf') {
+        newWindow.location.href = doc.fileData;
+      } else {
+        showError('Preview not available for this file type');
+        newWindow.close();
+      }
+    } catch (error) {
+      console.error('Preview error:', error);
+      showError('Failed to preview document');
+      newWindow.close();
+    }
+  };
+
+  const handleRemove = async (doc: DocumentAttachment) => {
+    if (doc.driveFileId) {
+      try {
+        await deleteFileFromDrive(doc.driveFileId);
+        showSuccess('File removed from Google Drive');
+      } catch (error) {
+        console.error('Error deleting from Drive:', error);
       }
     }
+    onRemove(doc.id);
   };
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
+      {!checkingDrive && !driveConnected && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Google Drive Not Connected</AlertTitle>
+          <AlertDescription>
+            Connect your Google Drive in Settings to upload documents with unlimited storage.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Upload className="h-5 w-5 mr-2" />
             Upload Documents
+            {driveConnected && <Badge variant="outline" className="ml-2"><Cloud className="h-3 w-3 mr-1" /> Drive Connected</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -185,15 +263,16 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 onChange={handleFileSelect}
                 className="mt-1"
+                disabled={!driveConnected || uploading}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Supported: PDF, Word, JPEG, PNG (max 10MB)
+                Supported: PDF, Word, JPEG, PNG (max 100MB)
               </p>
             </div>
 
             <div>
               <Label htmlFor="document-type">Document Type</Label>
-              <Select onValueChange={setDocumentType} value={documentType}>
+              <Select onValueChange={setDocumentType} value={documentType} disabled={!driveConnected || uploading}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select document type" />
                 </SelectTrigger>
@@ -216,11 +295,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                   <span className="text-sm font-medium">{selectedFile.name}</span>
                   <Badge variant="outline">{formatFileSize(selectedFile.size)}</Badge>
                 </div>
-                <Button
-                  onClick={() => setSelectedFile(null)}
-                  variant="ghost"
-                  size="sm"
-                >
+                <Button onClick={() => setSelectedFile(null)} variant="ghost" size="sm" disabled={uploading}>
                   Remove
                 </Button>
               </div>
@@ -229,15 +304,20 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
           <Button
             onClick={handleUpload}
-            disabled={!selectedFile || !documentType || uploading}
+            disabled={!selectedFile || !documentType || uploading || !driveConnected}
             className="w-full"
           >
-            {uploading ? 'Uploading...' : 'Upload Document'}
+            {uploading ? 'Uploading to Drive...' : 'Upload to Google Drive'}
           </Button>
+
+          {!driveConnected && (
+            <p className="text-xs text-center text-muted-foreground">
+              💡 Connect Google Drive in Settings to enable document uploads
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Documents List */}
       {documents.length > 0 && (
         <Card>
           <CardHeader>
@@ -249,43 +329,37 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           <CardContent>
             <div className="space-y-3">
               {documents.map((document) => (
-                <div
-                  key={document.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
+                <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center space-x-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="font-medium">{document.fileName}</p>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Badge variant="outline" className="text-xs">
-                          {document.documentType}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs">{document.documentType}</Badge>
                         <span>{formatFileSize(document.fileSize)}</span>
                         <span>•</span>
                         <span>{format(document.uploadDate, 'dd MMM yyyy')}</span>
+                        {document.driveFileId && (
+                          <>
+                            <span>•</span>
+                            <Badge variant="secondary" className="text-xs">
+                              <Cloud className="h-3 w-3 mr-1" />
+                              Drive
+                            </Badge>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {(document.fileType.startsWith('image/') || document.fileType === 'application/pdf') && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => previewDocument(document)}
-                        title="Preview"
-                      >
-                        <Eye className="h-4 w-4" />
+                    {(document.driveWebViewLink || (document.fileData && (document.fileType.startsWith('image/') || document.fileType === 'application/pdf'))) && (
+                      <Button variant="ghost" size="icon" onClick={() => previewDocument(document)} title="Preview">
+                        {document.driveWebViewLink ? <ExternalLink className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     )}
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => downloadDocument(document)}
-                      title="Download"
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => downloadDocument(document)} title="Download">
                       <Download className="h-4 w-4" />
                     </Button>
 
@@ -299,13 +373,15 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Document</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "{document.fileName}"? This action cannot be undone.
+                            Are you sure you want to delete "{document.fileName}"?
+                            {document.driveFileId && ' This will also remove it from Google Drive.'}
+                            {' This action cannot be undone.'}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => onRemove(document.id)}
+                            onClick={() => handleRemove(document)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete

@@ -660,7 +660,6 @@ const Insurance = () => {
                         documents={selectedPolicyForDocs.policyDocuments || []}
                         onUpload={(document) => uploadDocument(selectedPolicyForDocs.id, { ...document, documentType: document.documentType as any })}
                         onRemove={(documentId) => removeDocument(selectedPolicyForDocs.id, documentId)}
-                      category="Insurance Documents"
                       />
                     </CardContent>
                   </Card>

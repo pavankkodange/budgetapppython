@@ -194,11 +194,6 @@ export interface AssetDocument {
   documentType: "Invoice" | "Warranty" | "Manual" | "Insurance" | "Other";
   fileUrl?: string;
   fileData?: string;
-  // Google Drive fields
-  driveFileId?: string;
-  driveWebViewLink?: string;
-  driveThumbnailLink?: string;
-  driveFolder?: string;
 }
 
 export interface MaintenanceRecord {

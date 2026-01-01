@@ -128,28 +128,6 @@ export const InvestmentProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   });
 
-  // Save to localStorage whenever data changes (strip fileData to save space)
-  useEffect(() => {
-    try {
-      // Remove large fileData before saving to avoid quota errors
-      const assetsToSave = investmentAssets.map(asset => ({
-        ...asset,
-        documents: asset.documents?.map(doc => ({
-          id: doc.id,
-          fileName: doc.fileName,
-          fileType: doc.fileType,
-          fileSize: doc.fileSize,
-          documentType: doc.documentType,
-          uploadDate: doc.uploadDate,
-          // fileData is NOT saved to avoid localStorage quota
-        })),
-      }));
-      localStorage.setItem(INVESTMENT_ASSETS_KEY, JSON.stringify(assetsToSave));
-    } catch (e) {
-      console.error('Storage quota exceeded:', e);
-      showError('⚠️ Storage limit reached. Your fund is saved but documents won\'t persist after refresh.');
-    }
-  }, [investmentAssets]);
 
   useEffect(() => {
     localStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));

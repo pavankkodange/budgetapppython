@@ -53,19 +53,88 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
         .single();
 
       if (fetchError) {
+        // Log the error details for debugging
+        console.error('Profile fetch error:', {
+          code: fetchError.code,
+          message: fetchError.message,
+          details: fetchError.details,
+          hint: fetchError.hint,
+        });
+
         if (fetchError.code === 'PGRST116') {
-          // No profile found - this is not an error, just means profile doesn't exist yet
+          // No profile found - create one with OAuth data
+          console.log('No profile found, creating with OAuth data...');
+
+          // Extract data from auth user
+          const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+          const userEmail = user.email || '';
+          const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+
+          try {
+            const { data: newProfile, error: createError } = await supabase
+              .from('user_profiles')
+              .insert({
+                user_id: user.id,
+                name: userName,
+                email: userEmail,
+                avatar_url: avatarUrl,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError);
+              setProfile(null);
+              setError(null);
+            } else {
+              console.log('Profile created successfully:', newProfile);
+              setProfile(newProfile);
+            }
+          } catch (err) {
+            console.error('Failed to create profile:', err);
+            setProfile(null);
+            setError(null);
+          }
+        } else if (fetchError.message?.includes('406')) {
+          // Handle 406 errors gracefully - likely a schema/config issue
+          console.warn('User profiles table may not be properly configured. Skipping profile fetch.');
           setProfile(null);
           setError(null);
         } else {
           throw fetchError;
         }
       } else {
-        setProfile(data);
+        // Profile found - update with latest OAuth data if available
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name;
+        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+
+        const needsUpdate = (userName && data.name !== userName) || (avatarUrl && data.avatar_url !== avatarUrl);
+
+        if (needsUpdate) {
+          console.log('Updating profile with latest OAuth data...');
+          const updates: any = {};
+          if (userName && data.name !== userName) updates.name = userName;
+          if (avatarUrl && data.avatar_url !== avatarUrl) updates.avatar_url = avatarUrl;
+
+          const { data: updated } = await supabase
+            .from('user_profiles')
+            .update(updates)
+            .eq('user_id', user.id)
+            .select()
+            .single();
+
+          setProfile(updated || data);
+        } else {
+          setProfile(data);
+        }
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile');
+      // Don't set error state for 406 errors to avoid blocking the UI
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch profile';
+      if (!errorMessage.includes('406')) {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

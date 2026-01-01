@@ -1,294 +1,452 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DocumentAttachment } from '@/types';
-import { Upload, FileText, Trash2, Download, Eye } from 'lucide-react';
+import { Upload, FileText, Trash2, Download, Eye, ExternalLink, Cloud, AlertCircle } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { format } from 'date-fns';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { isDriveConnected, uploadFileToDrive, deleteFileFromDrive, downloadFileFromDrive } from '@/services/googleDrive';
 
 interface IncomeDocumentUploadProps {
-    documents: DocumentAttachment[];
-    onUpload: (document: Omit<DocumentAttachment, 'id' | 'uploadDate'>) => void;
-    onRemove: (documentId: string) => void;
+  documents: DocumentAttachment[];
+  onUpload: (document: Omit<DocumentAttachment, 'id' | 'uploadDate'>) => void;
+  onRemove: (documentId: string) => void;
+  category?: string; // e.g., "Mutual Funds", "Real Estate"
 }
 
 const documentTypes = [
-    'Paystub',
-    'Tax Form',
-    'Receipt',
-    'Invoice',
-    'Contract',
-    'Other'
+  'Salary Slip',
+  'Tax Form',
+  'Statement',
+  'Bank Statement',
+  'Bonus Letter',
+  'Appointment Letter',
+  'Income Proof',
+  'Other'
 ];
 
 export const IncomeDocumentUpload: React.FC<IncomeDocumentUploadProps> = ({
-    documents,
-    onUpload,
-    onRemove,
+  documents,
+  onUpload,
+  onRemove,
+  category = 'Income Documents',
 }) => {
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [documentType, setDocumentType] = useState<string>('');
-    const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [documentType, setDocumentType] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [driveConnected, setDriveConnected] = useState(false);
+  const [checkingDrive, setCheckingDrive] = useState(true);
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            // Validate file size (max 10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                showError('File size must be less than 10MB');
-                return;
-            }
+  useEffect(() => {
+    checkDriveConnection();
+  }, []);
 
-            // Validate file type
-            const allowedTypes = [
-                'application/pdf',
-                'image/jpeg',
-                'image/jpg',
-                'image/png',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            ];
+  const checkDriveConnection = async () => {
+    setCheckingDrive(true);
+    try {
+      const connected = await isDriveConnected();
+      setDriveConnected(connected);
+    } catch (error) {
+      console.error('Error checking Drive connection:', error);
+    } finally {
+      setCheckingDrive(false);
+    }
+  };
 
-            if (!allowedTypes.includes(file.type)) {
-                showError('Only PDF, Word documents, and images (JPEG, PNG) are allowed');
-                return;
-            }
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file size (max 100MB for Drive)
+      if (file.size > 100 * 1024 * 1024) {
+        showError('File size must be less than 100MB');
+        return;
+      }
 
-            setSelectedFile(file);
-        }
-    };
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
 
-    const handleUpload = async () => {
-        if (!selectedFile || !documentType) {
-            showError('Please select a file and document type');
-            return;
-        }
+      if (!allowedTypes.includes(file.type)) {
+        showError('Only PDF, Word documents, and images (JPEG, PNG) are allowed');
+        return;
+      }
 
-        setUploading(true);
+      setSelectedFile(file);
+    }
+  };
 
-        try {
-            // Convert file to base64 for storage
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64Data = reader.result as string;
+  const handleUpload = async () => {
+    if (!selectedFile || !documentType) {
+      showError('Please select a file and document type');
+      return;
+    }
 
-                const documentData: Omit<DocumentAttachment, 'id' | 'uploadDate'> = {
-                    fileName: selectedFile.name,
-                    fileType: selectedFile.type,
-                    fileSize: selectedFile.size,
-                    documentType: documentType,
-                    fileData: base64Data,
-                };
+    if (!driveConnected) {
+      showError('Please connect Google Drive first');
+      return;
+    }
 
-                onUpload(documentData);
-                setSelectedFile(null);
-                setDocumentType('');
-                setUploading(false);
-                showSuccess('Document uploaded successfully');
+    setUploading(true);
 
-                // Reset file input
-                const fileInput = document.getElementById('income-file-upload') as HTMLInputElement;
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-            };
-            reader.readAsDataURL(selectedFile);
-        } catch (error) {
-            showError('Failed to upload document');
-            setUploading(false);
-        }
-    };
+    try {
+      // Upload to Google Drive
+      const result = await uploadFileToDrive(selectedFile, category, {
+        documentType,
+        description: `${documentType} - ${category}`,
+      });
 
-    const handleDownload = (doc: DocumentAttachment) => {
-        if (doc.fileData) {
-            const link = document.createElement('a');
-            link.href = doc.fileData;
-            link.download = doc.fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    };
+      // Create document metadata (no fileData!)
+      const documentData: Omit<DocumentAttachment, 'id' | 'uploadDate'> = {
+        fileName: result.fileName,
+        fileType: selectedFile.type,
+        fileSize: result.fileSize,
+        documentType: documentType as DocumentAttachment['documentType'],
+        driveFileId: result.fileId,
+        driveWebViewLink: result.webViewLink,
+        driveThumbnailLink: result.thumbnailLink,
+        driveFolder: category,
+      };
 
-    const handlePreview = (doc: DocumentAttachment) => {
-        if (doc.fileData) {
-            const newWindow = window.open();
-            if (newWindow) {
-                if (doc.fileType === 'application/pdf') {
-                    newWindow.document.write(`<iframe src="${doc.fileData}" style="width:100%;height:100%;border:none;"></iframe>`);
-                } else if (doc.fileType.startsWith('image/')) {
-                    newWindow.document.write(`<img src="${doc.fileData}" style="max-width:100%;height:auto;" />`);
-                } else {
-                    handleDownload(doc);
-                }
-            }
-        }
-    };
+      onUpload(documentData);
+      setSelectedFile(null);
+      setDocumentType('');
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    };
+      // Reset file input
+      const fileInput = document.getElementById('income-file-upload') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
 
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-5 w-5" />
-                    Income Documents
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {/* Upload Section */}
-                <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
-                    <div className="space-y-2">
-                        <Label htmlFor="income-file-upload">Select File</Label>
-                        <Input
-                            id="income-file-upload"
-                            type="file"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={handleFileSelect}
-                            className="cursor-pointer"
-                        />
-                        {selectedFile && (
-                            <p className="text-sm text-muted-foreground">
-                                Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                            </p>
-                        )}
-                    </div>
+      showSuccess(`✅ ${result.fileName} uploaded to Google Drive!`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      showError('Failed to upload to Google Drive. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
-                    <div className="space-y-2">
-                        <Label htmlFor="document-type">Document Type</Label>
-                        <Select value={documentType} onValueChange={setDocumentType}>
-                            <SelectTrigger id="document-type">
-                                <SelectValue placeholder="Select document type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {documentTypes.map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                        {type}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
-                    <Button
-                        onClick={handleUpload}
-                        disabled={!selectedFile || !documentType || uploading}
-                        className="w-full"
-                    >
-                        {uploading ? (
-                            <>
-                                <Upload className="mr-2 h-4 w-4 animate-spin" />
-                                Uploading...
-                            </>
-                        ) : (
-                            <>
-                                <Upload className="mr-2 h-4 w-4" />
-                                Upload Document
-                            </>
-                        )}
-                    </Button>
+  const downloadDocument = async (doc: DocumentAttachment) => {
+    if (doc.driveFileId) {
+      // Download from Drive
+      try {
+        const blob = await downloadFileFromDrive(doc.driveFileId);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Download error:', error);
+        showError('Failed to download file from Drive');
+      }
+    } else if (doc.fileData) {
+      // Fallback: old base64 data
+      const link = document.createElement('a');
+      link.href = doc.fileData;
+      link.download = doc.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const previewDocument = async (doc: DocumentAttachment) => {
+    console.log('Preview document:', {
+      fileName: doc.fileName,
+      hasFileData: !!doc.fileData,
+      hasDriveLink: !!doc.driveWebViewLink,
+      fileType: doc.fileType,
+    });
+
+    // If has Drive link, open in Drive
+    if (doc.driveWebViewLink) {
+      window.open(doc.driveWebViewLink, '_blank');
+      return;
+    }
+
+    // Fallback: old base64 preview
+    if (!doc.fileData) {
+      showError('No preview available for this document');
+      return;
+    }
+
+    const newWindow = window.open();
+    if (!newWindow) {
+      showError('Popup blocked. Please allow popups to preview documents.');
+      return;
+    }
+
+    try {
+      if (doc.fileType.startsWith('image/')) {
+        newWindow.document.write(`
+          <html>
+            <head><title>${doc.fileName}</title></head>
+            <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1a1a1a;">
+              <img 
+                src="${doc.fileData}" 
+                style="max-width:100%;max-height:100%;object-fit:contain;" 
+                onerror="document.body.innerHTML='<p style=color:white>Error loading image</p>'"
+              />
+            </body>
+          </html>
+        `);
+      } else if (doc.fileType === 'application/pdf') {
+        newWindow.location.href = doc.fileData;
+      } else {
+        showError('Preview not available for this file type');
+        newWindow.close();
+      }
+    } catch (error) {
+      console.error('Preview error:', error);
+      showError('Failed to preview document');
+      newWindow.close();
+    }
+  };
+
+  const handleRemove = async (doc: DocumentAttachment) => {
+    // If file is in Drive, delete from Drive
+    if (doc.driveFileId) {
+      try {
+        await deleteFileFromDrive(doc.driveFileId);
+        showSuccess('File removed from Google Drive');
+      } catch (error) {
+        console.error('Error deleting from Drive:', error);
+        // Continue anyway to remove from local state
+      }
+    }
+
+    onRemove(doc.id);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Drive Connection Alert */}
+      {!checkingDrive && !driveConnected && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Google Drive Not Connected</AlertTitle>
+          <AlertDescription>
+            Connect your Google Drive in Settings to upload documents with unlimited storage.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Upload Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Upload className="h-5 w-5 mr-2" />
+            Upload Documents
+            {driveConnected && <Badge variant="outline" className="ml-2"><Cloud className="h-3 w-3 mr-1" /> Drive Connected</Badge>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="income-file-upload">Select File</Label>
+              <Input
+                id="income-file-upload"
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                onChange={handleFileSelect}
+                className="mt-1"
+                disabled={!driveConnected || uploading}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Supported: PDF, Word, JPEG, PNG (max 100MB)
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="document-type">Document Type</Label>
+              <Select onValueChange={setDocumentType} value={documentType} disabled={!driveConnected || uploading}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select document type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {documentTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {selectedFile && (
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  <Badge variant="outline">{formatFileSize(selectedFile.size)}</Badge>
                 </div>
+                <Button
+                  onClick={() => setSelectedFile(null)}
+                  variant="ghost"
+                  size="sm"
+                  disabled={uploading}
+                >
+                  Remove
+                </Button>
+              </div>
+            </div>
+          )}
 
-                {/* Documents List */}
-                {documents.length > 0 ? (
-                    <div className="space-y-2">
-                        <Label>Uploaded Documents ({documents.length})</Label>
-                        <div className="space-y-2">
-                            {documents.map((doc) => (
-                                <div
-                                    key={doc.id}
-                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-sm truncate">{doc.fileName}</p>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <Badge variant="secondary" className="text-xs">
-                                                    {doc.documentType}
-                                                </Badge>
-                                                <span>{formatFileSize(doc.fileSize)}</span>
-                                                <span>•</span>
-                                                <span>{format(new Date(doc.uploadDate), 'PP')}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handlePreview(doc)}
-                                            title="Preview"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleDownload(doc)}
-                                            title="Download"
-                                        >
-                                            <Download className="h-4 w-4" />
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" title="Delete">
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Delete Document?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Are you sure you want to delete {doc.fileName}? This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => onRemove(doc.id)} className="bg-destructive hover:bg-destructive/90">
-                                                        Delete
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || !documentType || uploading || !driveConnected}
+            className="w-full"
+          >
+            {uploading ? 'Uploading to Drive...' : 'Upload to Google Drive'}
+          </Button>
+
+          {!driveConnected && (
+            <p className="text-xs text-center text-muted-foreground">
+              💡 Connect Google Drive in Settings to enable document uploads
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Documents List */}
+      {documents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              Uploaded Documents ({documents.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {documents.map((document) => (
+                <div
+                  key={document.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">{document.fileName}</p>
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Badge variant="outline" className="text-xs">
+                          {document.documentType}
+                        </Badge>
+                        <span>{formatFileSize(document.fileSize)}</span>
+                        <span>•</span>
+                        <span>{format(document.uploadDate, 'dd MMM yyyy')}</span>
+                        {document.driveFileId && (
+                          <>
+                            <span>•</span>
+                            <Badge variant="secondary" className="text-xs">
+                              <Cloud className="h-3 w-3 mr-1" />
+                              Drive
+                            </Badge>
+                          </>
+                        )}
+                      </div>
                     </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                        No documents uploaded yet
-                    </p>
-                )}
-            </CardContent>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {/* Preview Button */}
+                    {(document.driveWebViewLink || (document.fileData && (document.fileType.startsWith('image/') || document.fileType === 'application/pdf'))) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => previewDocument(document)}
+                        title="Preview"
+                      >
+                        {document.driveWebViewLink ? <ExternalLink className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    )}
+
+                    {/* Download Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => downloadDocument(document)}
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+
+                    {/* Delete Button */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" title="Delete">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{document.fileName}"?
+                            {document.driveFileId && ' This will also remove it from Google Drive.'}
+                            {' This action cannot be undone.'}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleRemove(document)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
-    );
+      )}
+    </div>
+  );
 };

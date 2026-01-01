@@ -185,21 +185,6 @@ export interface Asset {
   notes?: string;
 }
 
-export interface AssetDocument {
-  id: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  uploadDate: Date;
-  documentType: "Invoice" | "Warranty" | "Manual" | "Insurance" | "Other";
-  fileUrl?: string;
-  fileData?: string;
-  // Google Drive fields
-  driveFileId?: string;
-  driveWebViewLink?: string;
-  driveThumbnailLink?: string;
-  driveFolder?: string;
-}
 
 export interface MaintenanceRecord {
   id: string;

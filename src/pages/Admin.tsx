@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { GoogleDriveConnect } from "@/components/GoogleDriveConnect";
 
 const Admin = () => {
   const { categories, addCategory, removeCategory } = useCategories();
@@ -71,6 +72,11 @@ const Admin = () => {
         <CurrencySelector />
       </header>
       <main className="flex-1 p-3 sm:p-6 overflow-auto">
+        {/* Google Drive Settings */}
+        <div className="mb-6 sm:mb-8">
+          <GoogleDriveConnect />
+        </div>
+
         <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border mb-6 sm:mb-8">
           <h2 className="text-lg sm:text-xl font-semibold mb-4 text-primary">Manage Expenses</h2>
 

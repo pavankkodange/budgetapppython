@@ -471,7 +471,6 @@ const IncomePage = () => {
                 })()}
                 onUpload={(doc) => addDocumentToSummary(parseInt(String(selectedMonth)), parseInt(String(selectedYear)), doc)}
                 onRemove={(docId) => removeDocumentFromSummary(parseInt(String(selectedMonth)), parseInt(String(selectedYear)), docId)}
-              category="Income Documents"
               />
             </div>
           </TabsContent>

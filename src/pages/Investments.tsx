@@ -123,6 +123,7 @@ const Investments = () => {
             <TabsTrigger value="stocks" className="flex-1 min-w-[80px] text-xs sm:text-sm">Stocks</TabsTrigger>
             <TabsTrigger value="real-estate" className="flex-1 min-w-[100px] text-xs sm:text-sm">Real Estate</TabsTrigger>
             <TabsTrigger value="goals" className="flex-1 min-w-[110px] text-xs sm:text-sm">Goals</TabsTrigger>
+            <TabsTrigger value="documents" className="flex-1 min-w-[100px] text-xs sm:text-sm">Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -459,16 +460,6 @@ const Investments = () => {
               )}
             </div>
 
-            {/* Add Investment Dialog */}
-            <Dialog open={isInvestmentDialogOpen} onOpenChange={setIsInvestmentDialogOpen}>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add Investment</DialogTitle>
-                </DialogHeader>
-                <InvestmentForm onSuccess={() => setIsInvestmentDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
-
             {/* Edit Asset Dialog */}
             <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -664,19 +655,9 @@ const Investments = () => {
           <TabsContent value="real-estate" className="space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Real Estate</h2>
-              <Dialog open={isRealEstateDialogOpen} onOpenChange={setIsRealEstateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={handleAddRealEstate}>
-                    <Plus className="h-4 w-4 mr-2" /> Add Property
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Add Real Estate Property</DialogTitle>
-                  </DialogHeader>
-                  <RealEstateForm onSuccess={() => setIsRealEstateDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
+              <Button onClick={handleAddRealEstate}>
+                <Plus className="h-4 w-4 mr-2" /> Add Property
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -867,7 +848,91 @@ const Investments = () => {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="documents" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Investment Documents</h2>
+            </div>
+
+            {investmentAssets.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Investment Assets</h3>
+                <p className="text-muted-foreground mb-4">
+                  Add investment assets to start uploading documents
+                </p>
+                <Button onClick={handleAddMutualFund}>
+                  <Plus className="h-4 w-4 mr-2" /> Add Investment
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {investmentAssets.map((asset) => (
+                  <Card key={asset.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-base">{asset.name}</CardTitle>
+                          <CardDescription className="text-xs">
+                            {asset.type}
+                            {asset.type === 'Mutual Fund' && asset.fundHouse && ` • ${asset.fundHouse}`}
+                            {asset.type === 'Real Estate' && asset.location && ` • ${asset.location}`}
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedAssetForDocs(asset)}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Documents:</span>
+                        <Badge variant="secondary">
+                          {asset.documents?.length || 0}
+                        </Badge>
+                      </div>
+                      {asset.documents && asset.documents.length > 0 && (
+                        <div className="mt-3 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">Recent:</p>
+                          {asset.documents.slice(0, 2).map((doc) => (
+                            <div key={doc.id} className="text-xs flex items-center gap-1 truncate">
+                              <FileText className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{doc.fileName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
+
+        {/* Add Investment Dialog - Moved outside TabsContent */}
+        <Dialog open={isInvestmentDialogOpen} onOpenChange={setIsInvestmentDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Investment</DialogTitle>
+            </DialogHeader>
+            <InvestmentForm onSuccess={() => setIsInvestmentDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Real Estate Dialog - Moved outside TabsContent */}
+        <Dialog open={isRealEstateDialogOpen} onOpenChange={setIsRealEstateDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Real Estate Property</DialogTitle>
+            </DialogHeader>
+            <RealEstateForm onSuccess={() => setIsRealEstateDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </main>
     </>
   );

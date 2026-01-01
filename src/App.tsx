@@ -29,13 +29,42 @@ import { InvestmentProvider } from "./context/InvestmentContext";
 import { InsuranceProvider } from "./context/InsuranceContext";
 import { AssetProvider } from "./context/AssetContext";
 import { TaxDeductionProvider } from "./context/TaxDeductionContext";
+import { GoogleDriveSetupModal } from "./components/GoogleDriveSetupModal";
+import { isDriveConnected } from "./services/googleDrive";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user, loading } = useAuth();
+  const [showDriveSetup, setShowDriveSetup] = useState(false);
+  const [checkingDrive, setCheckingDrive] = useState(false);
 
   console.log('AppContent render - User:', user?.email || 'No user', 'Loading:', loading);
+
+  // Check Drive connection on first login
+  useEffect(() => {
+    const checkDriveSetup = async () => {
+      if (!user || checkingDrive) return;
+
+      setCheckingDrive(true);
+      try {
+        const connected = await isDriveConnected();
+        const skipped = localStorage.getItem('drive_setup_skipped') === 'true';
+
+        // Show modal if not connected and hasn't skipped
+        if (!connected && !skipped) {
+          setShowDriveSetup(true);
+        }
+      } catch (error) {
+        console.error('Error checking Drive setup:', error);
+      } finally {
+        setCheckingDrive(false);
+      }
+    };
+
+    checkDriveSetup();
+  }, [user]);
 
   if (loading) {
     return (
@@ -56,6 +85,11 @@ const AppContent = () => {
   console.log('User authenticated, showing main app');
   return (
     <ProfileProvider>
+      <GoogleDriveSetupModal
+        open={showDriveSetup}
+        onOpenChange={setShowDriveSetup}
+        onComplete={() => setShowDriveSetup(false)}
+      />
       <BrowserRouter>
         <CurrencyProvider>
           <CategoryProvider>

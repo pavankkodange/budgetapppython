@@ -889,7 +889,6 @@ const Assets = () => {
                 documents={selectedAssetForDocs.documents || []}
                 onUpload={(document) => uploadDocument(selectedAssetForDocs.id, document)}
                 onRemove={(documentId) => removeDocument(selectedAssetForDocs.id, documentId)}
-              category="Assets"
               />
             </DialogContent>
           </Dialog>
