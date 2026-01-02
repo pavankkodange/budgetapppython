@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const isMobile = useIsMobile();
 
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 overflow-x-hidden">
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
             <Sidebar />
             <div className={`flex-1 flex flex-col w-full max-w-full ${isMobile ? "" : "md:ml-64"}`}>
                 {children}
