@@ -90,40 +90,33 @@ const Investments = () => {
 
   return (
     <>
-      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-2">
-          <BackButton />
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Investments</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage your investment portfolio</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <Dialog open={isMutualFundDialogOpen} onOpenChange={setIsMutualFundDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleAddMutualFund} size="sm" className="h-9 sm:h-10 shrink-0">
-                <Plus className="h-4 w-4 mr-1 sm:mr-2" /> Add Mutual Fund
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add Mutual Fund</DialogTitle>
-              </DialogHeader>
-              <MutualFundForm onSuccess={() => setIsMutualFundDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
+      <header className="p-3 sm:p-4 border-b border-border flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">Investments</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage your investment portfolio</p>
         </div>
       </header>
 
+      {/* Hidden dialog for mutual fund form - triggered from tabs */}
+      <Dialog open={isMutualFundDialogOpen} onOpenChange={setIsMutualFundDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Mutual Fund</DialogTitle>
+          </DialogHeader>
+          <MutualFundForm onSuccess={() => setIsMutualFundDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
       <main className="flex-1 p-3 sm:p-6 overflow-auto">
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-          <TabsList className="flex w-full overflow-x-auto scrollbar-none bg-muted/50 p-1 h-auto min-h-10">
-            <TabsTrigger value="overview" className="flex-1 min-w-[80px] text-xs sm:text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="mutual-funds" className="flex-1 min-w-[100px] text-xs sm:text-sm">Mutual Funds</TabsTrigger>
-            <TabsTrigger value="stocks" className="flex-1 min-w-[80px] text-xs sm:text-sm">Stocks</TabsTrigger>
-            <TabsTrigger value="real-estate" className="flex-1 min-w-[100px] text-xs sm:text-sm">Real Estate</TabsTrigger>
-            <TabsTrigger value="goals" className="flex-1 min-w-[110px] text-xs sm:text-sm">Goals</TabsTrigger>
-            <TabsTrigger value="documents" className="flex-1 min-w-[100px] text-xs sm:text-sm">Documents</TabsTrigger>
+          <TabsList className="grid grid-cols-3 sm:flex w-full overflow-x-auto scrollbar-none bg-muted/50 p-1 h-auto min-h-10 gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Overview</TabsTrigger>
+            <TabsTrigger value="mutual-funds" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Mutual Funds</TabsTrigger>
+            <TabsTrigger value="stocks" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Stocks</TabsTrigger>
+            <TabsTrigger value="real-estate" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Real Estate</TabsTrigger>
+            <TabsTrigger value="goals" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Goals</TabsTrigger>
+            <TabsTrigger value="documents" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
