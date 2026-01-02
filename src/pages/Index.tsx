@@ -175,9 +175,9 @@ const Index = () => {
 
   return (
     <>
-      <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <header className="sticky-header glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-premium">
             Dashboard
           </h1>
           <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
@@ -211,7 +211,7 @@ const Index = () => {
       <main className="flex-1 p-3 sm:p-6 overflow-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {/* Net Income Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.05s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Net Income</CardTitle>
               <div className="h-8 w-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
