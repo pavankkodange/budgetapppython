@@ -175,7 +175,7 @@ const Index = () => {
 
   return (
     <>
-      <header className="glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, paddingTop: '44px' }}>
+      <header className="glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50 }}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 pb-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-premium">
