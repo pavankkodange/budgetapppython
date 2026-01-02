@@ -175,36 +175,38 @@ const Index = () => {
 
   return (
     <>
-      <header className="sticky-header glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 pb-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-premium">
-            Dashboard
-          </h1>
-          <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
-            Overview of your financial performance
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
-            <SelectTrigger className="flex-1 sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map(month => (
-                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
-            <SelectTrigger className="w-[80px] sm:w-[100px] h-9 sm:h-10 text-xs sm:text-sm">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map(year => (
-                <SelectItem key={year} value={year}>{year}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <header className="sticky-header glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 pb-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-premium">
+              Dashboard
+            </h1>
+            <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+              Overview of your financial performance
+            </p>
+          </div>
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
+              <SelectTrigger className="flex-1 sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(month => (
+                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
+              <SelectTrigger className="w-[80px] sm:w-[100px] h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </header>
 
