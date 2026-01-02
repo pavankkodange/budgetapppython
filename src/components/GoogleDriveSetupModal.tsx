@@ -39,9 +39,8 @@ export const GoogleDriveSetupModal: React.FC<GoogleDriveSetupModalProps> = ({
         // Detect if running on mobile
         const { Capacitor } = await import('@capacitor/core');
         const isMobile = Capacitor.isNativePlatform();
-        const redirectUri = isMobile
-            ? 'com.trackmyfunds.app://drive-callback'
-            : `${window.location.origin}/drive-callback.html`;
+        // Always use HTTPS (the callback page will redirect to deep link for mobile)
+        const redirectUri = `${window.location.origin}/drive-callback.html`;
 
         const authUrl = getGoogleDriveAuthUrl(GOOGLE_CLIENT_ID, redirectUri);
 
