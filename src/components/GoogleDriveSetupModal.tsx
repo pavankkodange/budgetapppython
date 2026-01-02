@@ -39,8 +39,12 @@ export const GoogleDriveSetupModal: React.FC<GoogleDriveSetupModalProps> = ({
         // Detect if running on mobile
         const { Capacitor } = await import('@capacitor/core');
         const isMobile = Capacitor.isNativePlatform();
-        // Always use HTTPS (the callback page will redirect to deep link for mobile)
-        const redirectUri = `${window.location.origin}/drive-callback.html`;
+
+        // For mobile, use production URL (window.location.origin = localhost on mobile)
+        // For web, use current origin
+        const redirectUri = isMobile
+            ? 'https://budgetapppython.vercel.app/drive-callback.html'
+            : `${window.location.origin}/drive-callback.html`;
 
         const authUrl = getGoogleDriveAuthUrl(GOOGLE_CLIENT_ID, redirectUri);
 
