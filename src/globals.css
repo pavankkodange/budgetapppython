@@ -146,7 +146,7 @@
 
   /* Add padding to fixed mobile header elements */
   .fixed.top-3 {
-    top: calc(28px + 0.75rem) !important;
+    top: calc(44px + 0.75rem) !important;
   }
 }
 
