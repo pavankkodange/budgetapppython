@@ -5,8 +5,10 @@
 @layer base {
   :root {
     /* Light theme - Modern and vibrant */
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 222.2 84% 4.9%; /* Rich dark blue */
+    --background: 0 0% 100%;
+    /* Pure white */
+    --foreground: 222.2 84% 4.9%;
+    /* Rich dark blue */
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -15,11 +17,13 @@
     --popover-foreground: 222.2 84% 4.9%;
 
     /* Primary - Beautiful gradient blue */
-    --primary: 217 91% 60%; /* Vibrant blue */
+    --primary: 217 91% 60%;
+    /* Vibrant blue */
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Soft purple accent */
-    --secondary: 270 95% 97%; /* Very light purple */
+    --secondary: 270 95% 97%;
+    /* Very light purple */
     --secondary-foreground: 270 10% 40%;
 
     /* Muted - Warm gray */
@@ -66,8 +70,10 @@
 
   .dark {
     /* Dark theme - Rich and sophisticated */
-    --background: 222.2 84% 4.9%; /* Deep dark blue */
-    --foreground: 210 40% 98%; /* Soft white */
+    --background: 222.2 84% 4.9%;
+    /* Deep dark blue */
+    --foreground: 210 40% 98%;
+    /* Soft white */
 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
@@ -125,17 +131,22 @@
 
 /* Mobile safe area support */
 .safe-area-top {
-  padding-top: env(safe-area-inset-top);
+  padding-top: max(env(safe-area-inset-top), 28px);
 }
 
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile app specific styles */
-@supports (padding-top: env(safe-area-inset-top)) {
+/* Mobile app specific styles - add padding to body and fixed elements */
+@media (max-width: 768px) {
   body {
-    padding-top: env(safe-area-inset-top);
+    padding-top: 28px !important;
+  }
+
+  /* Add padding to fixed mobile header elements */
+  .fixed.top-3 {
+    top: calc(28px + 0.75rem) !important;
   }
 }
 
@@ -179,7 +190,10 @@
   }
 
   /* Smooth transitions for all interactive elements */
-  button, input, select, textarea {
+  button,
+  input,
+  select,
+  textarea {
     @apply transition-all duration-200 ease-in-out;
   }
 
@@ -256,6 +270,7 @@
     from {
       box-shadow: 0 0 20px rgba(var(--primary), 0.3);
     }
+
     to {
       box-shadow: 0 0 30px rgba(var(--primary), 0.6);
     }
@@ -267,9 +282,12 @@
   }
 
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-10px);
     }
@@ -293,6 +311,7 @@
       opacity: 0;
       transform: translateX(-100px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -304,6 +323,7 @@
       opacity: 0;
       transform: translateX(100px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -315,6 +335,7 @@
       opacity: 0;
       transform: translateY(50px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -331,6 +352,7 @@
       opacity: 0;
       transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -346,6 +368,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -357,18 +380,36 @@
     animation: stagger-fade-in 0.5s ease-out forwards;
   }
 
-  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
-  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
-  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
-  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
-  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
-  .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+  .stagger-item:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-item:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-item:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .stagger-item:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .stagger-item:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+
+  .stagger-item:nth-child(6) {
+    animation-delay: 0.6s;
+  }
 
   @keyframes stagger-fade-in {
     from {
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -460,11 +501,10 @@
 
   /* Loading states */
   .loading-shimmer {
-    background: linear-gradient(90deg, 
-      hsl(var(--muted)) 25%, 
-      hsl(var(--muted-foreground) / 0.1) 50%, 
-      hsl(var(--muted)) 75%
-    );
+    background: linear-gradient(90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--muted-foreground) / 0.1) 50%,
+        hsl(var(--muted)) 75%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
@@ -473,6 +513,7 @@
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
