@@ -131,7 +131,7 @@
 
 /* Mobile safe area support */
 .safe-area-top {
-  padding-top: max(env(safe-area-inset-top), 28px);
+  padding-top: max(env(safe-area-inset-top), 44px);
 }
 
 .safe-area-bottom {
@@ -141,7 +141,7 @@
 /* Mobile app specific styles - add padding to body and fixed elements */
 @media (max-width: 768px) {
   body {
-    padding-top: 28px !important;
+    padding-top: 44px !important;
   }
 
   /* Add padding to fixed mobile header elements */
