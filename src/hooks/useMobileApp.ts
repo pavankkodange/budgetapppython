@@ -71,19 +71,22 @@ export const useMobileApp = () => {
                     // Handle Google Drive OAuth callback
                     else if (data.url.includes('drive-callback')) {
                         try {
-                            // Extract access token from Drive OAuth
+                            // Extract token from query parameter (sent by the bridge page)
                             const urlParts = data.url.split('://');
                             if (urlParts.length > 1) {
                                 const params = urlParts[1];
                                 console.log('Drive OAuth callback:', params);
 
-                                if (params.includes('#')) {
-                                    const hashPart = params.split('#')[1];
-                                    const urlParams = new URLSearchParams(hashPart);
-                                    const accessToken = urlParams.get('access_token');
+                                // Parse query parameters (token is now in query, not hash)
+                                let accessToken = null;
+
+                                if (params.includes('?')) {
+                                    const queryPart = params.split('?')[1];
+                                    const urlParams = new URLSearchParams(queryPart);
+                                    accessToken = urlParams.get('token');
 
                                     if (accessToken) {
-                                        console.log('✅ Drive token received!');
+                                        console.log('✅ Drive token received from bridge!');
                                         // Import saveDriveToken
                                         const { saveDriveToken } = await import('../services/googleDrive');
                                         await saveDriveToken(accessToken);

@@ -40,54 +40,70 @@
 
 <body>
     <div class="container">
-        <div class="success">✅</div>
-        <div class="message">Authorization successful!</div>
-        <div class="submessage">You can close this window...</div>
+        <div class="success">⏳</div>
+        <div class="message">Processing authorization...</div>
+        <div class="submessage">Please wait...</div>
     </div>
 
     <script>
-        // Extract access token from URL hash
-        function getAccessToken() {
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            return params.get('access_token');
+        // Check if mobile device
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        function showSuccess() {
+            document.querySelector('.success').textContent = '✅';
+            document.querySelector('.message').textContent = 'Authorization successful!';
+            document.querySelector('.submessage').textContent = isMobile ? 'Redirecting to app...' : 'You can close this window...';
         }
 
-        // Send token to parent window
-        const token = getAccessToken();
-
-        if (token && window.opener) {
-            // Send message to parent window
-            window.opener.postMessage(
-                {
-                    type: 'DRIVE_AUTH_SUCCESS',
-                    token: token
-                },
-                window.location.origin
-            );
-
-            // Close popup after 1 second
-            setTimeout(() => {
-                window.close();
-            }, 1000);
-        } else {
-            // Error case
-            if (window.opener) {
-                window.opener.postMessage(
-                    {
-                        type: 'DRIVE_AUTH_ERROR'
-                    },
-                    window.location.origin
-                );
-            }
-
+        function showError(msg) {
             document.querySelector('.success').textContent = '❌';
             document.querySelector('.message').textContent = 'Authorization failed';
-            document.querySelector('.submessage').textContent = 'Please try again';
+            document.querySelector('.submessage').textContent = msg || 'Please try again';
+        }
 
-            setTimeout(() => {
-                window.close();
-            }, 2000);
+        // Extract access token from URL hash
+        const fragment = window.location.hash;
+
+        if (fragment.startsWith('#')) {
+            const params = new URLSearchParams(fragment.substring(1));
+            const accessToken = params.get('access_token');
+            const error = params.get('error');
+
+            if (error) {
+                showError('Authorization failed: ' + error);
+
+                // If mobile, redirect to app with error
+                if (isMobile) {
+                    setTimeout(() => {
+                        window.location.href = 'com.trackmyfunds.app://drive-callback?error=' + encodeURIComponent(error);
+                    }, 2000);
+                }
+            } else if (accessToken) {
+                showSuccess();
+
+                // For mobile: redirect to deep link with token as query parameter
+                if (isMobile) {
+                    console.log('Mobile detected - redirecting to deep link with token');
+                    setTimeout(() => {
+                        window.location.href = 'com.trackmyfunds.app://drive-callback?token=' + encodeURIComponent(accessToken);
+                    }, 1000);
+                }
+                // For web: use postMessage (popup to parent)
+                else if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'DRIVE_AUTH_SUCCESS',
+                        token: accessToken
+                    }, window.location.origin);
+
+                    setTimeout(() => {
+                        window.close();
+                    }, 1000);
+                } else {
+                    showError('Authorization window error. Please try again.');
+                }
+            }
+        } else {
+            showError('No authorization data received.');
         }
     </script>
 </body>
