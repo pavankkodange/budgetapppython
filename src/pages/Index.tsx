@@ -187,7 +187,7 @@ const Index = () => {
           </div>
           <div className="flex items-center space-x-2 w-full sm:w-auto">
             <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
-              <SelectTrigger className="flex-1 sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm focus:outline-none focus:ring-0 focus:ring-offset-0">
+              <SelectTrigger className="min-w-[140px] sm:w-[150px] h-9 sm:h-10 text-xs sm:text-sm focus:outline-none focus:ring-0 focus:ring-offset-0">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
