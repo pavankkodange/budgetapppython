@@ -108,7 +108,7 @@ const Investments = () => {
         </DialogContent>
       </Dialog>
 
-      <main className="flex-1 p-3 sm:p-6 overflow-auto pt-4">
+      <main className="flex-1 p-3 sm:p-6 overflow-auto pt-24">
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           <TabsList className="grid grid-cols-3 sm:flex w-full overflow-x-auto scrollbar-none bg-muted/50 p-1 h-auto min-h-10 gap-1">
             <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Overview</TabsTrigger>
