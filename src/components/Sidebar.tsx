@@ -201,15 +201,18 @@ export const Sidebar: React.FC = () => {
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed top-3 left-3 z-[60] h-10 w-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md hover:bg-white/60 dark:hover:bg-slate-900/60 shadow-lg border border-white/20 dark:border-white/10 rounded-xl transition-all"
-          >
-            <Menu className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          </Button>
-        </SheetTrigger>
+        {/* Only show trigger button when sidebar is closed */}
+        {!isOpen && (
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed top-3 left-3 z-[60] h-10 w-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md hover:bg-white/60 dark:hover:bg-slate-900/60 shadow-lg border border-white/20 dark:border-white/10 rounded-xl transition-all"
+            >
+              <Menu className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </Button>
+          </SheetTrigger>
+        )}
         <SheetContent side="left" className="p-0 w-[85vw] max-w-[300px] border-0 overflow-hidden mobile-sidebar safe-area-top">
           <SidebarContent onLinkClick={handleLinkClick} />
         </SheetContent>
