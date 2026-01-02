@@ -184,9 +184,9 @@ const Index = () => {
             Overview of your financial performance
           </p>
         </div>
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
+        <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
-            <SelectTrigger className="flex-1 sm:w-[180px] h-9 sm:h-10 text-xs sm:text-sm">
+            <SelectTrigger className="w-[100px] sm:w-[130px] h-9 sm:h-10 text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
             <SelectContent>
@@ -196,7 +196,7 @@ const Index = () => {
             </SelectContent>
           </Select>
           <Select onValueChange={setSelectedYear} defaultValue={selectedYear}>
-            <SelectTrigger className="w-[100px] h-9 sm:h-10 text-xs sm:text-sm">
+            <SelectTrigger className="w-[80px] sm:w-[100px] h-9 sm:h-10 text-xs sm:text-sm shrink-0">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
