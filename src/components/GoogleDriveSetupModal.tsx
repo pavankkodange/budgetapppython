@@ -41,7 +41,7 @@ export const GoogleDriveSetupModal: React.FC<GoogleDriveSetupModalProps> = ({
         const isMobile = Capacitor.isNativePlatform();
         const redirectUri = isMobile
             ? 'com.trackmyfunds.app://drive-callback'
-            : 'http://localhost:5173/drive-callback.html';
+            : `${window.location.origin}/drive-callback.html`;
 
         const authUrl = getGoogleDriveAuthUrl(GOOGLE_CLIENT_ID, redirectUri);
 
