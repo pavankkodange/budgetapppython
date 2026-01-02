@@ -90,10 +90,10 @@ const Investments = () => {
 
   return (
     <>
-      <header className="p-3 sm:p-4 border-b border-border flex items-center gap-3">
+      <header className="sticky-header glass-strong border-b border-white/20 dark:border-white/10 shadow-premium animate-fade-in flex items-center gap-3 px-4 pb-4">
         <BackButton />
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Investments</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-premium">Investments</h1>
           <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage your investment portfolio</p>
         </div>
       </header>

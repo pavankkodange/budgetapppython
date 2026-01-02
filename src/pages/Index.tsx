@@ -230,7 +230,7 @@ const Index = () => {
           </Card>
 
           {/* Expenses Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Expenses</CardTitle>
               <div className="h-8 w-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
@@ -249,7 +249,7 @@ const Index = () => {
           </Card>
 
           {/* Remaining Budget Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.15s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Cash Flow</CardTitle>
               <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center",
@@ -274,7 +274,7 @@ const Index = () => {
           </Card>
 
           {/* Income Tax Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Taxes Paid</CardTitle>
               <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
@@ -293,7 +293,7 @@ const Index = () => {
           </Card>
 
           {/* Total Contributions Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.25s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Savings Contrib.</CardTitle>
               <div className="h-8 w-8 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
@@ -312,7 +312,7 @@ const Index = () => {
           </Card>
 
           {/* Total Savings & Investments Card */}
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="card-hover shadow-premium animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Wealth Portfolio</CardTitle>
               <div className="h-8 w-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
@@ -331,7 +331,7 @@ const Index = () => {
         </div>
 
         {/* Recent Activity Card */}
-        <Card>
+        <Card className="shadow-premium animate-scale-in">
           <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
             <CardTitle className="text-lg sm:text-xl font-semibold flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
