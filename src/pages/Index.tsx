@@ -177,7 +177,7 @@ const Index = () => {
     <>
       <header className="p-3 sm:p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl font-bold">
             Dashboard
           </h1>
           <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
